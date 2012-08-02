@@ -58,22 +58,33 @@
       <div id="language" style="display:none;">
       <select name="language">
         <option value="language" selected="selected">Language</option>
-        <option value="C/C++">C/C++</option>
-        <option value="php">php</option>
+        <option value="c">C</option>
+        <option value="cpp">C++</option>
+        <option value="csharp">C#</option>
+        <option value="css">CSS</option>
+        <option value="html">HTML</option>
+        <option value="java">Java</option>
+        <option value="javascript">JavaScript</option>
+        <option value="Javascript_dom">JavaScript with DOM</option>
+        <option value="perl">Perl</option>
+        <option value="php">PHP</option>
         <option value="python">Python</option>
+        <option value="ruby">Ruby</option>
+        <option value="sql">SQL</option>
+        <option value="xml">XML</option>
       </select>
       </div>
         <input id="password" value="Optional password..." style="display:none;" />
         <div id="opendisc" class="button" style="display:none;">
            <input type="checkbox" id="opendiscussion" name="opendiscussion" />
-           <label for="opendiscussion">Open discussion</label>
+           <label for="opendiscussion">Allow Comments</label>
         </div>
     </div>
     <div id="pastelink" style="display:none;"></div>
     <pre id="cleartext" style="display:none;"></pre>
     <textarea id="message" name="message" cols="80" rows="25" style="display:none;"></textarea>
     <div id="discussion" style="display:none;">
-        <h4>Discussion</h4>
+        <h4>Comments</h4>
         <div id="comments"></div>
     </div>
     <div id="cipherdata" style="display:none;">{$CIPHERDATA}</div>

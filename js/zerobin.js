@@ -274,7 +274,7 @@ function stateNewPaste() {
     $('button#sendbutton').show();
     $('div#expiration').show();
     $('div#remainingtime').hide();
-    $('div#language').hide(); // $('#language').show();
+    $('div#language').show();
     $('input#password').hide(); //$('#password').show();
     $('div#opendisc').show();
     $('button#newbutton').show();
