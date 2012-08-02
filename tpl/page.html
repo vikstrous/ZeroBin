@@ -1,14 +1,15 @@
 <html>
 <head>
 <title>ZeroBin</title>
+<link type="text/css" rel="stylesheet" href="css/jquery.snippet.min.css#" /> 
 <link type="text/css" rel="stylesheet" href="css/zerobin.css?{$VERSION|rawurlencode}#" /> 
 <script src="js/jquery.js#"></script>
 <script src="js/sjcl.js#"></script>
 <script src="js/base64.js#"></script>
 <script src="js/rawdeflate.js#"></script>
 <script src="js/rawinflate.js#"></script>
+<script src="js/jquery.snippet.min.js#"></script>
 <script src="js/zerobin.js?{$VERSION|rawurlencode}#"></script>
-<script type="text/javascript" src="http://balupton.github.com/jquery-syntaxhighlighter/scripts/jquery.syntaxhighlighter.min.js"></script>
 
 <!--[if lt IE 10]>
 <style> body {padding-left:60px;padding-right:60px;} div#ienotice {display:block;} </style>
@@ -72,7 +73,7 @@
         </div>
     </div>
     <div id="pastelink" style="display:none;"></div>
-    <pre id="cleartext" class="highlight" style="display:none;"></pre>
+    <pre id="cleartext" style="display:none;"></pre>
     <textarea id="message" name="message" cols="80" rows="25" style="display:none;"></textarea>
     <div id="discussion" style="display:none;">
         <h4>Discussion</h4>

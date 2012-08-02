@@ -415,7 +415,7 @@ $(function() {
         stateExistingPaste();
 
         displayMessages(pageKey(), messages);
-        $.SyntaxHighlighter.init();
+        $("pre#cleartext").snippet("php",{style:"ide-codewarrior"});
     }
     // Display error message from php code.
     else if ($('div#errormessage').text().length>1) {
