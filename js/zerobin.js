@@ -140,24 +140,24 @@ function displayMessages(key, comments) {
             if ($(cname).length) {
                 place = $(cname);
             }
-            var divComment = $('<div class="comment" id="comment_' + comment.meta.commentid+'">'
-                               + '<div class="commentmeta"><span class="nickname"></span><span class="commentdate"></span></div><div class="commentdata"></div>'
+            var divComment = $('<blockquote><div class="comment" id="comment_' + comment.meta.commentid+'">'
+                               + '<div class="commentmeta"><strong class="nickname"></strong><span class="commentdate"></span></div><div class="commentdata"></div>'
                                + '<button class="btn" onclick="open_reply($(this),\'' + comment.meta.commentid + '\');return false;">Reply</button>'
-                               + '</div>');
+                               + '</div></blockquote>');
             setElementText(divComment.find('div.commentdata'), cleartext);
             // Convert URLs to clickable links in comment.
             urls2links(divComment.find('div.commentdata'));
-            divComment.find('span.nickname').html('<i>(Anonymous)</i>');
+            divComment.find('strong.nickname').html('<i>(Anonymous)</i>');
 
             // Try to get optional nickname:
             try {
-                divComment.find('span.nickname').text(zeroDecipher(key, comment.meta.nickname));
+                divComment.find('strong.nickname').text(zeroDecipher(key, comment.meta.nickname));
             } catch(err) { }
-            divComment.find('span.commentdate').text('  ('+(new Date(comment.meta.postdate*1000).toUTCString())+')').attr('title','CommentID: ' + comment.meta.commentid);
+            divComment.find('span.commentdate').text(' - '+(new Date(comment.meta.postdate*1000).toUTCString())+' ').attr('title','CommentID: ' + comment.meta.commentid);
 
             // If an avatar is available, display it.
             if (comment.meta.vizhash) {
-                divComment.find('span.nickname').before('<img src="' + comment.meta.vizhash + '" class="vizhash" title="Anonymous avatar (Vizhash of the IP address)" />');
+                divComment.find('strong.nickname').before('<img src="' + comment.meta.vizhash + '" class="vizhash" title="Anonymous avatar (Vizhash of the IP address)" />');
             }
 
             place.append(divComment);
@@ -175,10 +175,10 @@ function displayMessages(key, comments) {
 function open_reply(source, commentid) {
     $('div.reply').remove(); // Remove any other reply area.
     source.after('<div class="row">'
-                + '<div class="span6 offset3">'
+                + '<div class="span8 offset2">'
                 + '<div class="reply">'
                 + '<div id="replystatus" class="alert" style="display:none;">&nbsp;</div>'
-                + '<form class="form-horizontal"><fieldset>'
+                + '<form class="form-horizontal well"><fieldset>'
                 + '<div class="control-group">'
                 + '<label class="control-label" for="nickname">Optional Name</label>'
                 + '<div class="controls">'
