@@ -3,8 +3,12 @@
 /*   Hé, t'as vu Idleman, j'ai fait un effort sur les CSS !   ;-)      */
 
 
-/* --- discussion related CSS ------- */
+.footer {
+	margin-top: 45px;
+	padding: 35px 0 36px;
+}
 
+/* --- discussion related CSS ------- */
 
 div.comment
 {
