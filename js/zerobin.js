@@ -109,7 +109,7 @@ function displayMessages(key, comments) {
         var cleartext = zeroDecipher(key, comments[0].data);
     } catch(err) {
         $('pre#cleartext').hide();
-        showError('Could not decrypt data (Wrong key ?)');
+        showError('Error: Could not decrypt data.');
         return;
     }
     setElementText($('pre#cleartext'), cleartext);
@@ -214,7 +214,7 @@ function send_comment(parentid) {
 
     $.post(scriptLocation(), data_to_send, 'json')
         .error(function() {
-            showError('Comment could not be sent (serveur error or not responding).');
+            showError('Error: Comment could not be sent.');
         })
         .success(function(data) {
             if (data.status == 0) {
@@ -222,10 +222,10 @@ function send_comment(parentid) {
                 location.reload();
             }
             else if (data.status==1) {
-                showError('Could not post comment: '+data.message);
+                showError('Error: Could not post comment: '+data.message);
             }
             else {
-                showError('Could not post comment.');
+                showError('Error: Could not post comment.');
             }
         });
     }
@@ -235,37 +235,40 @@ function send_comment(parentid) {
  */
 function send_data() {
     // Do not send if no data.
-    if ($('textarea#message').val().length == 0) {
+    if ($('textarea#messageValue').val().length == 0) {
         return;
     }
+
     showStatus('Sending paste...', spin=true);
+
     var randomkey = sjcl.codec.base64.fromBits(sjcl.random.randomWords(8, 0), 0);
-    var cipherdata = zeroCipher(randomkey, $('textarea#message').val());
+    var cipherdata = zeroCipher(randomkey, $('textarea#messageValue').val());
     var data_to_send = { data:           cipherdata,
                          expire:         $('select#pasteExpiration').val(),
-                         language:       $('select#languageValue').val(),
+                         language:       $('select#language').val(),
                          opendiscussion: $('input#opendiscussion').is(':checked') ? 1 : 0
                        };
+
     $.post(scriptLocation(), data_to_send, 'json')
         .error(function() {
-            showError('Data could not be sent (serveur error or not responding).');
+            showError('Error: Data could not be sent.');
         })
         .success(function(data) {
             if (data.status == 0) {
                 stateExistingPaste();
                 var url = scriptLocation() + "?" + data.id + '#' + randomkey;
                 showStatus('');
-                $('div#pastelink').html('Your paste is <a href="' + url + '">' + url + '</a>').show();
-                setElementText($('pre#cleartext'), $('textarea#message').val());
+                $('div#pastelink').html('Paste url: <a href="' + url + '">' + url + '</a>').show();
+                setElementText($('pre#cleartext'), $('textarea#messageValue').val());
                 urls2links($('pre#cleartext'));
-                $('pre#cleartext').snippet($('select#languageValue').val(), {style:"ide-codewarrior"});
+                $('pre#cleartext').snippet($('select#language').val(), {style:"ide-codewarrior"});
                 showStatus('');
             }
             else if (data.status==1) {
-                showError('Could not create paste: '+data.message);
+                showError('Error: Could not create paste - '+data.message);
             }
             else {
-                showError('Could not create paste.');
+                showError('Error: Could not create paste.');
             }
         });
 }
@@ -282,10 +285,10 @@ function stateNewPaste() {
     $('div#opendisc').show();
     $('button#newbutton').show();
     $('div#pastelink').hide();
-    $('textarea#message').text('');
+    $('textarea#messageValue').text('');
     $('textarea#message').show();
     $('div#cleartext').hide();
-    $('div#message').focus();
+    $('textarea#messageValue').focus();
     $('div#discussion').hide();
 }
 
@@ -293,14 +296,8 @@ function stateNewPaste() {
  * Put the screen in "Existing paste" mode.
  */
 function stateExistingPaste() {
-    $('button#sendbutton').hide();
-    $('div#expiration').hide();
-    $('div#language').hide();
-    $('input#password').hide();
-    $('div#opendisc').hide();
-    $('button#newbutton').show();
-    $('div#pastelink').hide();
-    $('textarea#message').hide();
+    $('#message').hide();
+    $('#toolbar').hide();
     $('pre#cleartext').show();
 }
 
@@ -310,7 +307,7 @@ function stateExistingPaste() {
 function newPaste() {
     stateNewPaste();
     showStatus('');
-    $('textarea#message').text('');
+    $('textarea#messageValue').text('');
 }
 
 /**
@@ -318,8 +315,10 @@ function newPaste() {
  * (We use the same function for paste and reply to comments)
  */
 function showError(message) {
-    $('div#status').addClass('errorMessage').text(message);
-    $('div#replystatus').addClass('errorMessage').text(message);
+    $('div#status').addClass('alert-error').text(message);
+    $('div#replystatus').addClass('alert-error').text(message);
+    $('div#status').show();
+    $('div#replystatus').show();
 }
 
 /**
@@ -330,18 +329,19 @@ function showError(message) {
  * @param boolean spin (optional) : tell if the "spinning" animation should be displayed.
  */
 function showStatus(message, spin) {
-    $('div#replystatus').removeClass('errorMessage');
+    $('div#replystatus').removeClass('alert-error');
     $('div#replystatus').text(message);
-    if (!message) {
-        $('div#status').html('&nbsp');
-        return;
-    }
-    if (message == '') {
-        $('div#status').html('&nbsp');
-        return;
-    }
-    $('div#status').removeClass('errorMessage');
+    $('div#status').removeClass('alert-error');
     $('div#status').text(message);
+
+    if (!message || message == '') {
+        $('div#status').html('&nbsp');
+        $('div#status').hide();
+        return;
+    } 
+
+    $('div#status').show();
+    
     if (spin) {
         var img = '<img src="img/busy.gif" style="width:16px;height:9px;margin:0px 4px 0px 0px;" />';
         $('div#status').prepend(img);
@@ -407,7 +407,7 @@ $(function() {
     if ($('div#cipherdata').text().length > 1) {
         // Missing decryption key in URL ?
         if (window.location.hash.length == 0) {
-            showError('Cannot decrypt paste: Decryption key missing in URL (Did you use a redirector or an URL shortener which strips part of the URL ?)');
+            showError('Error: Cannot decrypt paste - Decryption key missing in URL.');
             return;
         }
 
@@ -421,7 +421,7 @@ $(function() {
     }
     // Display error message from php code.
     else if ($('div#errormessage').text().length>1) {
-        showError($('div#errormessage').text());
+        showError('Error: ' + $('div#errormessage').text());
     }
     // Create a new paste.
     else {

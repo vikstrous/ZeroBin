@@ -36,7 +36,7 @@
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-          <a class="brand" href="#">ZeroBin</a>
+          <a class="brand" href="#" onclick="window.location.href=scriptLocation();return false;">ZeroBin</a>
           <p class="navbar-text pull-right">{$VERSION}</p>
         </div>
       </div>
@@ -47,16 +47,20 @@
     <div class="container">
       
       <div class="row">
-        <div class="span12 alert alert-info" id="status" style="display:none">&nbsp;</div>
-        <div class="span12 alert alert-error" id="errormessage" style="display:none">{$ERRORMESSAGE|htmlspecialchars}</div>
+        <div class="span12">
+          <div class="alert" id="status" style="display:none">&nbsp;</div>
+        </div>
+        <div class="span12">
+          <div class="alert alert-error" id="errormessage" style="display:none">{$ERRORMESSAGE|htmlspecialchars}</div>
+        </div>
       </div>
 
       <div class="row">
-        <div class="span9">
-          <textarea class="span9" rows="20" id="message" name="message"></textarea>
+        <div id="message" class="span9">
+          <textarea id="messageValue" class="span9" rows="20" name="message"></textarea>
         </div>
-        <div class="span3">
-          <div id="toolbar" class="well">
+        <div id="toolbar" class="span3">
+          <div class="well">
             <label for="pasteExpiration">Expiration:</label>
             <select class="span2" id="pasteExpiration" name="pasteExpiration">
               <option value="burn">Burn after reading</option>
@@ -94,24 +98,27 @@
             <div id="remainingtime" style="display:none;"></div>
             <input id="password" value="Optional password..." style="display:none;" />
             -->
-
+            <hr />
             <button class="btn btn-primary" id="sendbutton" onclick="send_data();return false;"><i class="icon-ok icon-white"></i>Submit</button>
-            <button class="btn btn-danger" id="newbutton" onclick="window.location.href=scriptLocation();return false;"><i class="icon-remove icon-white"></i>Cancel</button>            
-            
+            <button class="btn btn-danger" id="newbutton" onclick="window.location.href=scriptLocation();return false;"><i class="icon-remove icon-white"></i>Cancel</button>
           </div>
-        
-          <div id="pastelink" style="display:none;"></div>
-          <pre id="cleartext" style="display:none;"></pre>
+        </div>
+      </div>
 
+      <div class="row">
+        <div class="span12">
+          <div id="pastelink" class="alert alert-info" style="display:none;"></div>
+        </div>
+        <div class="span12">
+          <pre id="cleartext" style="display:none;"></pre>
         </div>
       </div>
     
-      <div class="row">
+      <div id="discussion" class="row" style="display:none;">
         <div class="span12">
-          <div id="discussion" style="display:none;">
-            <h4>Comments</h4>
-            <div id="comments"></div>
-          </div>
+          <hr />
+          <h3>Comments</h3>
+          <div id="comments"></div>
         </div>
       </div>
       <div id="cipherdata" style="display:none;">{$CIPHERDATA}</div>
