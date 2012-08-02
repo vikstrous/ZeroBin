@@ -158,6 +158,8 @@ if (!empty($_POST['data'])) // Create new paste/comment
         if ($expire=='10min') $meta['expire_date']=time()+10*60;
         elseif ($expire=='1hour') $meta['expire_date']=time()+60*60;
         elseif ($expire=='1day') $meta['expire_date']=time()+24*60*60;
+        elseif ($expire=='3day') $meta['expire_date']=time()+3*24*60*60;
+        elseif ($expire=='7day') $meta['expire_date']=time()+7*24*60*60;
         elseif ($expire=='1month') $meta['expire_date']=time()+30*24*60*60; // Well this is not *exactly* one month, it's 30 days.
         elseif ($expire=='1year') $meta['expire_date']=time()+365*24*60*60;
         elseif ($expire=='burn') $meta['burnafterreading']=true;
