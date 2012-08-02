@@ -151,6 +151,9 @@ if (!empty($_POST['data'])) // Create new paste/comment
     // Read additional meta-information.
     $meta=array();
 
+    // push the language through
+    $meta['language'] = $_POST['language'];
+
     // always force expiration
     $meta['expire_date']=time()+10*60;
 

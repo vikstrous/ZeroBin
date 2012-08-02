@@ -114,6 +114,8 @@ function displayMessages(key, comments) {
     }
     setElementText($('pre#cleartext'), cleartext);
     urls2links($('pre#cleartext')); // Convert URLs to clickable links.
+    console.log(comments[0].meta);
+    $('pre#cleartext').snippet(comments[0].meta.language, {style:"ide-codewarrior"});
 
     // Display paste expiration.
     if (comments[0].meta.expire_date) $('div#remainingtime').removeClass('foryoureyesonly').text('This document will expire in '+secondsToHuman(comments[0].meta.remaining_time)+'.').show();
@@ -242,6 +244,7 @@ function send_data() {
     var cipherdata = zeroCipher(randomkey, $('textarea#message').val());
     var data_to_send = { data:           cipherdata,
                          expire:         $('select#pasteExpiration').val(),
+                         language:       $('select#languageValue').val(),
                          opendiscussion: $('input#opendiscussion').is(':checked') ? 1 : 0
                        };
     $.post(scriptLocation(), data_to_send, 'json')
@@ -256,6 +259,7 @@ function send_data() {
                 $('div#pastelink').html('Your paste is <a href="' + url + '">' + url + '</a>').show();
                 setElementText($('pre#cleartext'), $('textarea#message').val());
                 urls2links($('pre#cleartext'));
+                $('pre#cleartext').snippet($('select#languageValue').val(), {style:"ide-codewarrior"});
                 showStatus('');
             }
             else if (data.status==1) {
@@ -415,7 +419,6 @@ $(function() {
         stateExistingPaste();
 
         displayMessages(pageKey(), messages);
-        $("pre#cleartext").snippet("php",{style:"ide-codewarrior"});
     }
     // Display error message from php code.
     else if ($('div#errormessage').text().length>1) {
