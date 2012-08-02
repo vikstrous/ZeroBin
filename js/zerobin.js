@@ -142,7 +142,7 @@ function displayMessages(key, comments) {
             }
             var divComment = $('<div class="comment" id="comment_' + comment.meta.commentid+'">'
                                + '<div class="commentmeta"><span class="nickname"></span><span class="commentdate"></span></div><div class="commentdata"></div>'
-                               + '<button onclick="open_reply($(this),\'' + comment.meta.commentid + '\');return false;">Reply</button>'
+                               + '<button class="btn" onclick="open_reply($(this),\'' + comment.meta.commentid + '\');return false;">Reply</button>'
                                + '</div>');
             setElementText(divComment.find('div.commentdata'), cleartext);
             // Convert URLs to clickable links in comment.
@@ -162,7 +162,7 @@ function displayMessages(key, comments) {
 
             place.append(divComment);
         }
-        $('div#comments').append('<div class="comment"><button onclick="open_reply($(this),\'' + pasteID() + '\');return false;">Add comment</button></div>');
+        $('div#comments').append('<div class="comment"><button class="btn" onclick="open_reply($(this),\'' + pasteID() + '\');return false;">Add comment</button></div>');
         $('div#discussion').show();
     }
 }
@@ -174,12 +174,30 @@ function displayMessages(key, comments) {
  */
 function open_reply(source, commentid) {
     $('div.reply').remove(); // Remove any other reply area.
-    source.after('<div class="reply">'
-                + '<input type="text" id="nickname" title="Optional nickname..." value="Optional nickname..." />'
-                + '<textarea id="replymessage" class="replymessage" cols="80" rows="7"></textarea>'
-                + '<br><button id="replybutton" onclick="send_comment(\'' + commentid + '\');return false;">Post comment</button>'
-                + '<div id="replystatus">&nbsp;</div>'
-                + '</div>');
+    source.after('<div class="row">'
+                + '<div class="span6 offset3">'
+                + '<div class="reply">'
+                + '<div id="replystatus" class="alert" style="display:none;">&nbsp;</div>'
+                + '<form class="form-horizontal"><fieldset>'
+                + '<div class="control-group">'
+                + '<label class="control-label" for="nickname">Optional Name</label>'
+                + '<div class="controls">'
+                + '<input type="text" class="input-xlarge" id="nickname" name="nickname"/>'
+                + '</div>'
+                + '</div>'
+                + '<div class="control-group">'
+                + '<label class="control-label" for="replymessage">Comment</label>'
+                + '<div class="controls">'
+                + '<textarea id="replymessage" class="replymessage input-xlarge" rows="7"></textarea>'
+                + '</div>'
+                + '</div>'
+                + '<div class="control-group">'
+                + '<div class="controls">'
+                + '<button class="btn btn-primary" id="replybutton" onclick="send_comment(\'' + commentid + '\');return false;">Post comment</button>'
+                + '</div>'
+                + '</div>'
+                + '</div>'
+                + '</fieldset></form></div></div>');
     $('input#nickname').focus(function() {
         $(this).css('color', '#000');
         if ($(this).val() == $(this).attr('title')) {
@@ -203,7 +221,7 @@ function send_comment(parentid) {
     var cipherdata = zeroCipher(pageKey(), $('textarea#replymessage').val());
     var ciphernickname = '';
     var nick=$('input#nickname').val();
-    if (nick != '' && nick != 'Optional nickname...') {
+    if (nick != '') {
         ciphernickname = zeroCipher(pageKey(), nick);
     }
     var data_to_send = { data:cipherdata,
@@ -337,6 +355,8 @@ function showStatus(message, spin) {
     if (!message || message == '') {
         $('div#status').html('&nbsp');
         $('div#status').hide();
+        $('div#replystatus').html('&nbsp');
+        $('div#replystatus').hide();
         return;
     } 
 
