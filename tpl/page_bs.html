@@ -16,8 +16,7 @@
     </style>
     <link href="bootstrap/css/bootstrap-responsive.min.css#" rel="stylesheet">
 
-    <link type="text/css" rel="stylesheet" href="css/jquery.snippet.min.css#" /> 
-    <link type="text/css" rel="stylesheet" href="css/zerobin.css?{$VERSION|rawurlencode}#" /> 
+    <link type="text/css" rel="stylesheet" href="css/jquery.snippet.min.css#" />  
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -37,19 +36,8 @@
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" onclick="window.location.href=scriptLocation();return false;" href="#">ZeroBin</a>
-          <div class="nav-collapse">
-            <ul class="nav">
-              <li class="active"><a href="#">Home</a></li>
-              <li><a href="#about">About</a></li>
-              <li>{$VERSION}</li>
-            </ul>
-          </div><!--/.nav-collapse -->
+          <a class="brand" href="#">ZeroBin</a>
+          <p class="navbar-text pull-right">{$VERSION}</p>
         </div>
       </div>
     </div>
@@ -57,25 +45,31 @@
     <noscript><div class="nonworking">Javascript is required for ZeroBin to work.<br>Sorry for the inconvenience.</div></noscript>
 
     <div class="container">
-      <div id="status">&nbsp;</div>
-      <div id="errormessage" style="display:none">{$ERRORMESSAGE|htmlspecialchars}</div>
-      <div id="toolbar">
-        <button id="newbutton" onclick="window.location.href=scriptLocation();return false;" style="display:none;"><img src="img/icon_new.png#" width="11" height="15" />New</button>
-        <button id="sendbutton" onclick="send_data();return false;" style="display:none;"><img src="img/icon_send.png#" width="18" height="15" />Send</button>
-          <div id="expiration" style="display:none;">Expire: 
-          <select id="pasteExpiration" name="pasteExpiration">
-            <option value="burn">Burn after reading</option>
-            <option value="10min">10 minutes</option>
-            <option value="1hour">1 hour</option>
-            <option value="1day">1 day</option>
-            <option value="3day">3 day</option>
-            <option value="7day" selected="selected">1 week</option>
-          </select>
-          </div>
-          <div id="remainingtime" style="display:none;"></div>
-          <div id="language" style="display:none;">
-            <select id="languageValue" name="language">
-              <option value="language" selected="selected">Language</option>
+      
+      <div class="row">
+        <div class="span12 alert alert-info" id="status" style="display:none">&nbsp;</div>
+        <div class="span12 alert alert-error" id="errormessage" style="display:none">{$ERRORMESSAGE|htmlspecialchars}</div>
+      </div>
+
+      <div class="row">
+        <div class="span9">
+          <textarea class="span9" rows="20" id="message" name="message"></textarea>
+        </div>
+        <div class="span3">
+          <div id="toolbar" class="well">
+            <label for="pasteExpiration">Expiration:</label>
+            <select class="span2" id="pasteExpiration" name="pasteExpiration">
+              <option value="burn">Burn after reading</option>
+              <option value="10min">10 minutes</option>
+              <option value="1hour">1 hour</option>
+              <option value="1day">1 day</option>
+              <option value="3day">3 days</option>
+              <option value="7day" selected="selected">1 week</option>
+            </select>
+
+            <label for="language">Language:</label>
+            <select class="span2" id="language" name="language">
+              <option value="none" selected="selected">None</option>
               <option value="c">C</option>
               <option value="cpp">C++</option>
               <option value="csharp">C#</option>
@@ -91,21 +85,36 @@
               <option value="sql">SQL</option>
               <option value="xml">XML</option>
             </select>
-          </div>
+            <label class="checkbox">
+              <input type="checkbox" id="opendiscussion" name="opendiscussion" />
+              Allow Comments
+            </label>
+            
+            <!--
+            <div id="remainingtime" style="display:none;"></div>
             <input id="password" value="Optional password..." style="display:none;" />
-            <div id="opendisc" class="button" style="display:none;">
-               <input type="checkbox" id="opendiscussion" name="opendiscussion" />
-               <label for="opendiscussion">Allow Comments</label>
-            </div>
+            -->
+
+            <button class="btn btn-primary" id="sendbutton" onclick="send_data();return false;"><i class="icon-ok icon-white"></i>Submit</button>
+            <button class="btn btn-danger" id="newbutton" onclick="window.location.href=scriptLocation();return false;"><i class="icon-remove icon-white"></i>Cancel</button>            
+            
+          </div>
+        
+          <div id="pastelink" style="display:none;"></div>
+          <pre id="cleartext" style="display:none;"></pre>
+
         </div>
-        <div id="pastelink" style="display:none;"></div>
-        <pre id="cleartext" style="display:none;"></pre>
-        <textarea id="message" name="message" cols="80" rows="25" style="display:none;"></textarea>
-        <div id="discussion" style="display:none;">
+      </div>
+    
+      <div class="row">
+        <div class="span12">
+          <div id="discussion" style="display:none;">
             <h4>Comments</h4>
             <div id="comments"></div>
+          </div>
         </div>
-        <div id="cipherdata" style="display:none;">{$CIPHERDATA}</div>
+      </div>
+      <div id="cipherdata" style="display:none;">{$CIPHERDATA}</div>
     </div> <!-- /container -->
 
     <!-- Le javascript
