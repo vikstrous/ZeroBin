@@ -114,7 +114,6 @@ function displayMessages(key, comments) {
     }
     setElementText($('pre#cleartext'), cleartext);
     urls2links($('pre#cleartext')); // Convert URLs to clickable links.
-    console.log(comments[0].meta);
     $('pre#cleartext').snippet(comments[0].meta.language, {style:"ide-codewarrior"});
 
     // Display paste expiration.
