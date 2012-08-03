@@ -117,9 +117,16 @@ function displayMessages(key, comments) {
     $('pre#cleartext').snippet(comments[0].meta.language, {style:"ide-codewarrior"});
 
     // Display paste expiration.
-    if (comments[0].meta.expire_date) $('div#remainingtime').removeClass('foryoureyesonly').text('This document will expire in '+secondsToHuman(comments[0].meta.remaining_time)+'.').show();
+    if (comments[0].meta.expire_date) {
+        $('div#remainingtime')
+            .html('<i class="icon-time"></i> This document will expire in '+secondsToHuman(comments[0].meta.remaining_time)+'.')
+            .show();
+    }
     if (comments[0].meta.burnafterreading) {
-        $('div#remainingtime').addClass('foryoureyesonly').text('FOR YOUR EYES ONLY.  Don\'t close this window, this message can\'t be displayed again.').show();
+        $('div#remainingtime')
+            .addClass('alert-error')
+            .html('<i class="icon-fire"></i> <strong>FOR YOUR EYES ONLY.</strong> Don\'t close this window, this message will self destruct.')
+            .show();
     }
 
     // If the discussion is opened on this paste, display it.
@@ -358,10 +365,10 @@ function showStatus(message, spin) {
         $('div#replystatus').html('&nbsp');
         $('div#replystatus').hide();
         return;
-    } 
+    }
 
     $('div#status').show();
-    
+
     if (spin) {
         var img = '<img src="img/busy.gif" style="width:16px;height:9px;margin:0px 4px 0px 0px;" />';
         $('div#status').prepend(img);
