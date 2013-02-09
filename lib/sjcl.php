@@ -29,7 +29,7 @@ class sjcl
      */
     public static function isValid($encoded)
     {
-        $accepted_keys = array('iv','salt','ct');
+        $accepted_keys = array('iv','v','iter','ks','ts','mode','adata','cipher','salt','ct');
 
         // Make sure content is valid json
         $decoded = json_decode($encoded);
@@ -45,8 +45,7 @@ class sjcl
         foreach($accepted_keys as $k)
         {
             if (!(
-                array_key_exists($k, $decoded) &&
-                $ct = base64_decode($decoded[$k], $strict=true)
+                array_key_exists($k, $decoded)
             )) return false;
         }
 
@@ -55,6 +54,7 @@ class sjcl
         if (strlen($decoded['salt']) > 14) return false;
 
         // Reject data if entropy is too low
+        $ct = base64_decode($decoded['ct'], $strict=true);
         if (strlen($ct) > strlen(gzdeflate($ct))) return false;
 
         return true;
