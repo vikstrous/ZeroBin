@@ -72,7 +72,8 @@ class zerobin
         $this->_init();
 
         // Create new paste or comment.
-        if (!empty($_POST['data']))
+        if (array_key_exists('data', $_POST) && !empty($_POST['data']) || 
+            array_key_exists('attachment', $_POST) && !empty($_POST['attachment']))
         {
             $this->_create();
         }
@@ -160,8 +161,13 @@ class zerobin
 
         // Make sure content is not too big.
         $data = $_POST['data'];
+        $has_attachment = array_key_exists('attachment', $_POST);
+        $attachment = '';
+        if($has_attachment)
+            $attachment = $_POST['attachment'];
+
         if (
-            strlen($data) > $this->_conf['main']['sizelimit']
+            strlen($data) + strlen($attachment) > $this->_conf['main']['sizelimit']
         ) $this->_return_message(
             1,
             'Paste is limited to ' .
@@ -173,6 +179,8 @@ class zerobin
 
         // Make sure format is correct.
         if (!sjcl::isValid($data)) $this->_return_message(1, 'Invalid data.');
+        if($has_attachment)
+            if (!sjcl::isValid($attachment)) $this->_return_message(1, 'Invalid attachment.');
 
         // Read additional meta-information.
         $meta=array();
@@ -257,6 +265,8 @@ class zerobin
         $dataid = substr(hash('md5', $data), 0, 16);
 
         $storage = array('data' => $data);
+        if($has_attachment)
+            $storage['attachment'] = $attachment;
 
         // Add meta-information only if necessary.
         if (count($meta)) $storage['meta'] = $meta;

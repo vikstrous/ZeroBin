@@ -26,7 +26,7 @@ body {
 	padding-right: 60px;
 }
  
-a { color: #0f388f; }
+a { color: #0f388f; cursor:pointer; }
 
 h1 {
 	font-size: 3.5em;
@@ -78,7 +78,7 @@ h3 {
 
 #aboutbox a { color: #94a3b4; }
 
-#message, #cleartext, .replymessage {
+#message, #cleartext, #attachment, .replymessage {
 	clear: both;
 	color: #000;
 	background-color: #fff;

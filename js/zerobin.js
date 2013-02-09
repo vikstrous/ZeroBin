@@ -103,14 +103,28 @@ function setElementText(element, text) {
 }
 
 /**
+ * Remove the current attachment (either copied from another paste and in the file selector)
+ */
+function remove_attachment() {
+    $('#cloned-file').addClass('hidden');
+    $('#attachment a').attr('href', ''); // removes the saved decrypted file data
+    $('#file-wrap').html($('#file-wrap').html()); // the only way to deselect the file is to recreate the input
+    $('#file-wrap').removeClass('hidden');
+}
+
+/**
  * Show decrypted text in the display area, including discussion (if open)
  *
  * @param string key : decryption key
  * @param array comments : Array of messages to display (items = array with keys ('data','meta')
  */
 function displayMessages(key, comments) {
+    var attachment;
     try { // Try to decrypt the paste.
         var cleartext = zeroDecipher(key, comments[0].data);
+        if(comments[0].attachment) {
+            attachment = zeroDecipher(key, comments[0].attachment);
+        }
     } catch(err) {
         $('div#cleartext').addClass('hidden');
         $('div#prettymessage').addClass('hidden');
@@ -118,6 +132,12 @@ function displayMessages(key, comments) {
         showError('Could not decrypt data (Wrong key ?)');
         return;
     }
+
+    if(attachment) {
+        $('div#attachment').removeClass('hidden');
+        $('div#attachment a').attr('href', attachment);
+    }
+
     setElementText($('div#cleartext'), cleartext);
     setElementText($('pre#prettyprint'), cleartext);
     urls2links($('div#cleartext')); // Convert URLs to clickable links.
@@ -242,45 +262,70 @@ function send_comment(parentid) {
  */
 function send_data() {
     // Do not send if no data.
-    if ($('textarea#message').val().length == 0) {
+    var files = document.getElementById('file').files; // FileList object
+    if ($('textarea#message').val().length == 0 && !(files && files[0])) {
         return;
     }
     showStatus('Sending paste...', spin=true);
     var randomkey = sjcl.codec.base64.fromBits(sjcl.random.randomWords(8, 0), 0);
-    var cipherdata = zeroCipher(randomkey, $('textarea#message').val());
-    var data_to_send = { data:           cipherdata,
-                         expire:         $('select#pasteExpiration').val(),
-                         opendiscussion: $('input#opendiscussion').is(':checked') ? 1 : 0
-                       };
-    $.post(scriptLocation(), data_to_send, 'json')
-        .error(function() {
-            showError('Data could not be sent (serveur error or not responding).');
-        })
-        .success(function(data) {
-            if (data.status == 0) {
-                stateExistingPaste();
-                var url = scriptLocation() + "?" + data.id + '#' + randomkey;
-                showStatus('');
-                $('div#pastelink').html('Your paste is <a href="' + url + '">' + url + '</a>').removeClass('hidden');
-                setElementText($('div#cleartext'), $('textarea#message').val());
-                setElementText($('pre#prettyprint'), $('textarea#message').val());
-                urls2links($('div#cleartext'));
-                showStatus('');
-                prettyPrint();
-            }
-            else if (data.status==1) {
-                showError('Could not create paste: '+data.message);
-            }
-            else {
-                showError('Could not create paste.');
-            }
-        });
+
+    var cipherdata_attachment;
+    if(files && files[0]){
+      var reader = new FileReader();
+      // Closure to capture the file information.
+      reader.onload = (function(theFile) {
+        return function(e) {
+          cipherdata_attachment = zeroCipher(randomkey, e.target.result);
+          the_rest();
+        };
+      })(files[0]);
+      reader.readAsDataURL(files[0]);
+    } else if($('div#attachment a').attr('href')) {
+        cipherdata_attachment = zeroCipher(randomkey, $('div#attachment a').attr('href'));
+        the_rest();
+    } else {
+        the_rest();
+    }
+    function the_rest() {
+
+        var cipherdata = zeroCipher(randomkey, $('textarea#message').val());
+        var data_to_send = { data:           cipherdata,
+                             attachment:     cipherdata_attachment,
+                             expire:         $('select#pasteExpiration').val(),
+                             opendiscussion: $('input#opendiscussion').is(':checked') ? 1 : 0
+                           };
+        $.post(scriptLocation(), data_to_send, 'json')
+            .error(function() {
+                showError('Data could not be sent (serveur error or not responding).');
+            })
+            .success(function(data) {
+                if (data.status == 0) {
+                    stateExistingPaste();
+                    var url = scriptLocation() + "?" + data.id + '#' + randomkey;
+                    showStatus('');
+                    $('div#pastelink').html('Your paste is <a href="' + url + '">' + url + '</a>').removeClass('hidden');
+                    setElementText($('div#cleartext'), $('textarea#message').val());
+                    setElementText($('pre#prettyprint'), $('textarea#message').val());
+                    urls2links($('div#cleartext'));
+                    showStatus('');
+                    prettyPrint();
+                }
+                else if (data.status==1) {
+                    showError('Could not create paste: '+data.message);
+                }
+                else {
+                    showError('Could not create paste.');
+                }
+            });
+        }
 }
 
 /**
  * Put the screen in "New paste" mode.
  */
 function stateNewPaste() {
+    $('div#attach').removeClass('hidden');
+    $('div#attachment').addClass('hidden');
     $('button#sendbutton').removeClass('hidden');
     $('button#clonebutton').addClass('hidden');
     $('div#expiration').removeClass('hidden');
@@ -311,7 +356,8 @@ function stateExistingPaste() {
     else {
         $('button#clonebutton').removeClass('hidden');
     }
-
+    $('div#attach').addClass('hidden');
+    $('div#attachment').addClass('hidden');
     $('div#expiration').addClass('hidden');
     $('div#language').addClass('hidden');
     $('input#password').addClass('hidden');
@@ -329,6 +375,10 @@ function stateExistingPaste() {
 function clonePaste() {
     stateNewPaste();
     showStatus('');
+    if($('#attachment a').attr('href')){
+        $('#cloned-file').removeClass('hidden');
+        $('#file-wrap').addClass('hidden');
+    }
     $('textarea#message').text($('div#cleartext').text());
 }
 
@@ -420,7 +470,7 @@ function pageKey() {
 
 $(function() {
     // hide "no javascript" message
-    $('#noscript').hide();
+    $('#noscript').addClass('hidden');
 
     $('select#pasteExpiration').change(function() {
         if ($(this).val() == 'burn') {
