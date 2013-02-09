@@ -1,98 +1,182 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="robots" content="noindex" />
-		<title>ZeroBin</title>
-		<link type="text/css" rel="stylesheet" href="css/zerobin.css?{$VERSION|rawurlencode}#" /> 
-		<link type="text/css" rel="stylesheet" href="css/prettify.css?{$VERSION|rawurlencode}#" />
-		<script type="text/javascript" src="js/jquery.js#"></script>
-		<script type="text/javascript" src="js/sjcl.js#"></script>
-		<script type="text/javascript" src="js/base64.js#"></script>
-		<script type="text/javascript" src="js/rawdeflate.js#"></script>
-		<script type="text/javascript" src="js/rawinflate.js#"></script>
-		<script type="text/javascript" src="js/prettify.js#"></script>
-		<script type="text/javascript" src="js/zerobin.js?{$VERSION|rawurlencode}#"></script>
-		<!--[if lt IE 10]>
-		<style> body {padding-left:60px;padding-right:60px;} div#ienotice {display:block;} </style>
-		<![endif]-->
-		<!--[if lt IE 10]>
-		<style> div#ienotice {display:block; }  div#oldienotice {display:block; } </style>
-		<![endif]-->
-	</head>
-	<body>
-		<header>
-			<div id="aboutbox">
-				ZeroBin is a minimalist, opensource online pastebin where the server has zero knowledge of pasted data.
-				Data is encrypted/decrypted <i>in the browser</i> using 256 bits AES. 
-				More information on the <a href="http://sebsauvage.net/wiki/doku.php?id=php:zerobin">project page</a>.<br />
-				<span class="blink">▶</span> Note: This is a test service: 
-				Data may be deleted anytime. Kittens will die if you abuse this service.
-			</div>
-			<h1 title="ZeroBin" onclick="window.location.href=scriptLocation();return false;">ZeroBin</h1><br />
-			<h2>Because ignorance is bliss</h2><br />
-			<h3>{$VERSION}</h3>
-			<div id="noscript" class="nonworking">Javascript is required for ZeroBin to work.<br />Sorry for the inconvenience.</div>
-			<div id="oldienotice" class="nonworking">ZeroBin requires a modern browser to work.</div>
-	    <div id="ienotice">Still using Internet Explorer ?  Do yourself a favor, switch to a modern browser: 
-				<a href="http://www.mozilla.org/firefox/">Firefox</a>, 
-				<a href="http://www.opera.com/">Opera</a>, 
-				<a href="http://www.google.com/chrome">Chrome</a>, 
-				<a href="http://www.apple.com/safari">Safari</a>...
-			</div>
-		</header>
-		<section>
-			<article>
-				<div id="status"> </div>
-				<div id="errormessage" class="hidden">{$ERRORMESSAGE|htmlspecialchars}</div>
-				<div id="toolbar">
-					<button id="newbutton" onclick="window.location.href=scriptLocation();return false;" class="hidden"><img src="img/icon_new.png#" width="11" height="15" alt="" />New</button>
-					<button id="sendbutton" onclick="send_data();return false;" class="hidden"><img src="img/icon_send.png#" width="18" height="15" alt="" />Send</button>
-					<button id="clonebutton" onclick="clonePaste();return false;" class="hidden"><img src="img/icon_clone.png#" width="15" height="17" alt="" />Clone</button>
-		      <div id="expiration" class="hidden">Expire: 
-			      <select id="pasteExpiration" name="pasteExpiration">
-							<option value="burn">Burn after reading</option>
-							<option value="5min">5 minutes</option>
-							<option value="10min">10 minutes</option>
-							<option value="1hour">1 hour</option>
-							<option value="1day">1 day</option>
-							<option value="1week">1 week</option>
-							<option value="1month" selected="selected">1 month</option>
-							<option value="1year">1 year</option>
-							<option value="never">Never</option>
-						</select>
-					</div>
-					<div id="remainingtime" class="hidden"></div>
-					<div id="language" class="hidden">
-						<select name="language">
-							<option value="language" selected="selected">Language</option>
-							<option value="C/C++">C/C++</option>
-							<option value="php">php</option>
-							<option value="python">Python</option>
-						</select>
-					</div>
-					<input id="password" value="Optional password..." class="hidden" />
-					<div id="opendisc" class="button hidden">
-						<input type="checkbox" id="opendiscussion" name="opendiscussion" {if="!$OPENDISCUSSION"} disabled="disabled"{/if} />
-						<label for="opendiscussion">Open discussion</label>
-					</div>
-				</div>
-				<div id="pastelink" class="hidden"></div>
-        <div id="attachment" class="hidden"><a>Download attachment</a></div>
-        <div id="attach" class="hidden"><span id="cloned-file" class="hidden">Cloned file attached.</span><span id="file-wrap">Attach a file: <input type="file" id="file" name="file" /></span> <button onclick="remove_attachment()">remove attachment</button></div>
-				<div id="prettymessage" class="hidden">
-					<pre id="prettyprint" class="prettyprint linenums:1"></pre>
-				</div>
-				<div id="cleartext" class="hidden"></div>
-				<textarea id="message" name="message" cols="80" rows="25" class="hidden"></textarea>
-			</article>
-		</section>
-		<section>
-			<div id="discussion" class="hidden">
-				<h4>Discussion</h4>
-				<div id="comments"></div>
-			</div>
-		</section>
-		<div id="cipherdata" class="hidden">{$CIPHERDATA}</div>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>ZeroBin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="bootstrap/css/bootstrap.min.css#" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+    <link href="bootstrap/css/bootstrap-responsive.min.css#" rel="stylesheet">
+
+    <link type="text/css" rel="stylesheet" href="css/jquery.snippet.min.css#" />
+    <link type="text/css" rel="stylesheet" href="../css/bootstrap-fileupload.min.css" />
+    <link type="text/css" rel="stylesheet" href="css/zerobin.css?{$VERSION|rawurlencode}#" />
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="../assets/ico/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="../assets/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="../assets/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="../assets/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="../assets/ico/apple-touch-icon-57-precomposed.png">
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="#" onclick="window.location.href=scriptLocation();return false;">ZeroBin</a>
+          <p class="navbar-text pull-right">{$VERSION}</p>
+        </div>
+      </div>
+    </div>
+
+    <noscript><div class="nonworking">Javascript is required for ZeroBin to work.<br>Sorry for the inconvenience.</div></noscript>
+
+    <div class="container">
+
+
+      <div class="row">
+        <div class="span12">
+          <div id="attachment" style="display:none">
+            <a>Download attachment</a>
+          </div>
+          <div id="attach" style="display:none">
+            <span id="cloned-file" style="display:none">Cloned file attached.</span>
+            <span id="file-wrap">
+            <div class="fileupload fileupload-new" data-provides="fileupload">
+              <div class="input-append">
+                <div class="uneditable-input span3">
+                  <i class="icon-file fileupload-exists"></i>
+                  <span class="fileupload-preview"></span>
+                </div>
+                <span class="btn btn-file">
+                  <span class="fileupload-new">Select file</span>
+                  <span class="fileupload-exists">Change</span>
+                  <input id="file" type="file" name="file" />
+                </span>
+                <a href="#" class="btn fileupload-exists" data-dismiss="fileupload" onclick="remove_attachment()">Remove</a>
+              </div>
+            </div>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span12">
+          <div class="alert" id="status" style="display:none">&nbsp;</div>
+        </div>
+        <div class="span12">
+          <div class="alert alert-error" id="errormessage" style="display:none">{$ERRORMESSAGE|htmlspecialchars}</div>
+        </div>
+        <div class="span12">
+          <div id="remainingtime" class="alert" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div id="message" class="span9">
+          <textarea id="messageValue" class="span9" rows="20" name="message"></textarea>
+        </div>
+        <div id="toolbar" class="span3">
+          <div class="well">
+            <label for="pasteExpiration">Expiration:</label>
+            <select class="span2" id="pasteExpiration" name="pasteExpiration">
+              <option value="burn">Burn after reading</option>
+              <option value="10min">10 minutes</option>
+              <option value="1hour">1 hour</option>
+              <option value="1day">1 day</option>
+              <option value="3day">3 days</option>
+              <option value="7day" selected="selected">1 week</option>
+            </select>
+
+            <label for="language">Language:</label>
+            <select class="span2" id="language" name="language">
+              <option value="none" selected="selected">None</option>
+              <option value="c">C</option>
+              <option value="cpp">C++</option>
+              <option value="csharp">C#</option>
+              <option value="css">CSS</option>
+              <option value="diff">Diff</option>
+              <option value="html">HTML</option>
+              <option value="java">Java</option>
+              <option value="javascript">JavaScript</option>
+              <option value="Javascript_dom">JavaScript with DOM</option>
+              <option value="perl">Perl</option>
+              <option value="php">PHP</option>
+              <option value="python">Python</option>
+              <option value="ruby">Ruby</option>
+              <option value="sql">SQL</option>
+              <option value="xml">XML</option>
+            </select>
+            <label class="checkbox">
+              <input type="checkbox" id="opendiscussion" name="opendiscussion" />
+              Allow Comments
+            </label>
+
+            <!--
+            <input id="password" value="Optional password..." style="display:none;" />
+            -->
+            <hr />
+            <button class="btn btn-primary" id="sendbutton" onclick="send_data();return false;"><i class="icon-ok icon-white"></i>Submit</button>
+            <button class="btn btn-danger" id="newbutton" onclick="window.location.href=scriptLocation();return false;"><i class="icon-remove icon-white"></i>Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span12">
+          <div id="pastelink" class="alert alert-info" style="display:none;"></div>
+        </div>
+        <div class="span12">
+          <pre id="cleartext" style="display:none;"></pre>
+        </div>
+      </div>
+
+      <div id="discussion" class="row" style="display:none;">
+        <div class="span12">
+          <hr />
+          <h3>Comments</h3>
+          <div id="comments"></div>
+        </div>
+      </div>
+      <div id="cipherdata" style="display:none;">{$CIPHERDATA}</div>
+
+      <footer class="footer">
+        <hr />
+        <p><strong>Warning</strong> You have accessed a private computer system. This system is for authorized use only and user activities are monitored and recorded by company personnel. Unauthorized access to or use of this system is strictly prohibited and constitutes a violation of federal and state criminal and civil laws, including Title 18, Section 1030 of the United States Code and applicable international laws. Violators will be prosecuted to the fullest extent of the law. By using this system you certify that you have read and understood these terms and that you are authorized to access and use this system.</p>
+        <p>This is a fork of ZeroBin. ZeroBin is a minimalist, opensource online pastebin where the server has zero knowledge of pasted data. Data is encrypted/decrypted in the browser using 256 bits AES. More information on the <a href="http://github.com/CashWilliams/ZeroBin">project page</a>.</p>
+      </footer>
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.js#"></script>
+
+    <script src="bootstrap/js/bootstrap.min.js#"></script>
+    <script src="js/bootstrap-fileupload.min.js#"></script>
+
+    <script src="js/sjcl.js#"></script>
+    <script src="js/base64.js#"></script>
+    <script src="js/rawdeflate.js#"></script>
+    <script src="js/rawinflate.js#"></script>
+    <script src="js/jquery.snippet.min.js#"></script>
+    <script src="js/sh_diff.min.js#"></script>
+    <script src="js/zerobin.js?{$VERSION|rawurlencode}#"></script>
   </body>
 </html>
