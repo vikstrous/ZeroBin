@@ -20,7 +20,7 @@ class zerobin
     /*
      * @const string version
      */
-    const VERSION = 'Alpha 0.15';
+    const VERSION = 'Alpha 0.16';
 
     /**
      * @access private

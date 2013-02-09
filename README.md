@@ -1,4 +1,4 @@
-ZeroBin 0.15 Alpha
+ZeroBin 0.16 Alpha
 === THIS IS ALPHA SOFTWARE - USE AT YOUR OWN RISKS ====
 
 ZeroBin is a minimalist, opensource online pastebin where the server 
