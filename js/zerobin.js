@@ -367,32 +367,9 @@ function stateNewPaste() {
  * Put the screen in "Existing paste" mode.
  */
 function stateExistingPaste() {
-// <<<<<<< HEAD
-//     $('button#sendbutton').addClass('hidden');
-
-//     // No "clone" for IE<10.
-//     if ($('div#oldienotice').is(":visible")) {
-//         $('button#clonebutton').addClass('hidden');
-//     }
-//     else {
-//         $('button#clonebutton').removeClass('hidden');
-//     }
-//     $('div#attach').addClass('hidden');
-//     $('div#attachment').addClass('hidden');
-//     $('div#expiration').addClass('hidden');
-//     $('div#language').addClass('hidden');
-//     $('input#password').addClass('hidden');
-//     $('div#opendisc').addClass('hidden');
-//     $('button#newbutton').removeClass('hidden');
-//     $('div#pastelink').addClass('hidden');
-//     $('textarea#message').addClass('hidden');
-//     $('pre#cleartext').addClass('hidden');
-//     $('div#prettymessage').removeClass('hidden');
-// =======
     $('#message').hide();
     $('#toolbar').hide();
     $('pre#cleartext').show();
-// >>>>>>> cash/master
 }
 
 // /**
