@@ -54,27 +54,9 @@
           <div id="attachment" style="display:none">
             <a>Download attachment</a>
           </div>
-          <div id="attach" style="display:none">
-            <span id="cloned-file" style="display:none">Cloned file attached.</span>
-            <span id="file-wrap">
-            <div class="fileupload fileupload-new" data-provides="fileupload">
-              <div class="input-append">
-                <div class="uneditable-input span3">
-                  <i class="icon-file fileupload-exists"></i>
-                  <span class="fileupload-preview"></span>
-                </div>
-                <span class="btn btn-file">
-                  <span class="fileupload-new">Select file</span>
-                  <span class="fileupload-exists">Change</span>
-                  <input id="file" type="file" name="file" />
-                </span>
-                <a href="#" class="btn fileupload-exists" data-dismiss="fileupload" onclick="remove_attachment()">Remove</a>
-              </div>
-            </div>
-            </span>
-          </div>
         </div>
       </div>
+
 
       <div class="row">
         <div class="span12">
@@ -91,7 +73,29 @@
       <div class="row">
         <div id="message" class="span9">
           <textarea id="messageValue" class="span9" rows="20" name="message"></textarea>
+
+          <div id="attach" style="display:none">
+            <span id="cloned-file" style="display:none">Cloned file attached.</span>
+            <span id="file-wrap">
+            <div class="fileupload fileupload-new" data-provides="fileupload">
+              <span>Upload an attachment: </span>
+              <span class="input-append">
+                <div class="uneditable-input span3">
+                  <i class="icon-file fileupload-exists"></i>
+                  <span class="fileupload-preview"></span>
+                </div>
+                <span class="btn btn-file">
+                  <span class="fileupload-new">Select file</span>
+                  <span class="fileupload-exists">Change</span>
+                  <input id="file" type="file" name="file" />
+                </span>
+                <a href="#" class="btn fileupload-exists" data-dismiss="fileupload" onclick="remove_attachment()">Remove</a>
+              </span>
+            </div>
+            </span>
+          </div>
         </div>
+
         <div id="toolbar" class="span3">
           <div class="well">
             <label for="pasteExpiration">Expiration:</label>
