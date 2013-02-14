@@ -418,13 +418,17 @@ class zerobin
         header('Last-Modified: ' . $time);
         header('Vary: Accept');
 
-        $page = new RainTPL;
-        // We escape it here because ENT_NOQUOTES can't be used in RainTPL templates.
-        $page->assign('CIPHERDATA', htmlspecialchars($this->_data, ENT_NOQUOTES));
-        $page->assign('ERRORMESSAGE', $this->_error);
-        $page->assign('OPENDISCUSSION', $this->_conf['main']['opendiscussion']);
-        $page->assign('VERSION', self::VERSION);
-        $page->draw('page');
+        // generate a json response for the reading requests, otherwise html
+        if($this->_data) {
+            echo $this->_data;
+        } else {
+            $page = new RainTPL;
+            // We escape it here because ENT_NOQUOTES can't be used in RainTPL templates.
+            $page->assign('ERRORMESSAGE', $this->_error);
+            $page->assign('OPENDISCUSSION', $this->_conf['main']['opendiscussion']);
+            $page->assign('VERSION', self::VERSION);
+            $page->draw('page');
+        }
     }
 
     /**

@@ -247,11 +247,12 @@ function send_comment(parentid) {
     }
 
     showStatus('Sending comment...', spin=true);
-    var cipherdata = zeroCipher(pageKey(), $('textarea#replymessage').val());
+    var params = getParams();
+    var cipherdata = zeroCipher(params.key, $('textarea#replymessage').val());
     var ciphernickname = '';
     var nick=$('input#nickname').val();
     if (nick != '') {
-        ciphernickname = zeroCipher(pageKey(), nick);
+        ciphernickname = zeroCipher(params.key, nick);
     }
     var data_to_send = { data:cipherdata,
                          parentid: parentid,
@@ -325,9 +326,9 @@ function send_data() {
             .success(function(data) {
                 if (data.status == 0) {
                     stateExistingPaste();
-                    var url = scriptLocation() + "?" + data.id + '#' + randomkey;
+                    var url = scriptLocation() + "#" + data.id + '!' + randomkey;
                     showStatus('');
-                    $('div#pastelink').html('Paste url: <a href="' + url + '">' + url + '</a>').show();
+                    $('div#pastelink').html('Paste url: <a href="' + url + '" onclick="window.location=&quot;' + url + '&quot;;location.reload(true);">' + url + '</a>').show();
                     setElementText($('pre#cleartext'), $('textarea#messageValue').val());
                     urls2links($('pre#cleartext'));
                     showStatus('');
@@ -475,6 +476,26 @@ function pageKey() {
     return key;
 }
 
+function getParams() {
+    var params = window.location.hash.split('!');
+    var paste = params[0].substr(1), key = params[1] || '';
+
+    // Some stupid web 2.0 services and redirectors add data AFTER the anchor
+    // (such as &utm_source=...).
+    // We will strip any additional data.
+
+    // First, strip everything after the equal sign (=) which signals end of base64 string.
+    i = key.indexOf('='); if (i>-1) { key = key.substring(0,i+1); }
+
+    // If the equal sign was not present, some parameters may remain:
+    i = key.indexOf('&'); if (i>-1) { key = key.substring(0,i); }
+
+    // Then add trailing equal sign if it's missing
+    if (key.charAt(key.length-1)!=='=') key+='=';
+
+    return {'paste': paste, 'key': key};
+}
+
 $(function() {
     // hide "no javascript" message
     $('#noscript').addClass('hidden');
@@ -491,20 +512,22 @@ $(function() {
     });
 
     // Display an existing paste
-    if ($('div#cipherdata').text().length > 1) {
+    var params = getParams();
+    if (params.paste.length !== 0) {
         // Missing decryption key in URL ?
-        if (window.location.hash.length == 0) {
+        if (params.key.length === 0) {
             showError('Error: Cannot decrypt paste - Decryption key missing in URL.');
             return;
         }
 
-        // List of messages to display
-        var messages = jQuery.parseJSON($('div#cipherdata').text());
+        // TODO: make this more robust
+        $.get('?'+params.paste, function(messages){
+            // Show proper elements on screen.
+            stateExistingPaste();
 
-        // Show proper elements on screen.
-        stateExistingPaste();
+            displayMessages(params.key, jQuery.parseJSON(messages));
+        });
 
-        displayMessages(pageKey(), messages);
     }
     // Display error message from php code.
     else if ($('div#errormessage').text().length>1) {
