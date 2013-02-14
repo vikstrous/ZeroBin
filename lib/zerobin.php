@@ -430,7 +430,6 @@ class zerobin
         } else {
             $page = new RainTPL;
             // We escape it here because ENT_NOQUOTES can't be used in RainTPL templates.
-            $page->assign('ERRORMESSAGE', $this->_error);
             $page->assign('OPENDISCUSSION', $this->_conf['main']['opendiscussion']);
             $page->assign('VERSION', self::VERSION);
             $page->draw('page');

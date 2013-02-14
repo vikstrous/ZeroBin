@@ -328,7 +328,7 @@ function send_data() {
                     stateExistingPaste();
                     var url = scriptLocation() + "#" + data.id + '!' + randomkey;
                     showStatus('');
-                    $('div#pastelink').html('Paste url: <a href="' + url + '" onclick="window.location=&quot;' + url + '&quot;;location.reload(true);">' + url + '</a>').show();
+                    $('div#pastelink').html('Paste url: <a href="' + url + '">' + url + '</a>').show();
                     setElementText($('pre#cleartext'), $('textarea#messageValue').val());
                     urls2links($('pre#cleartext'));
                     showStatus('');
@@ -368,6 +368,7 @@ function stateNewPaste() {
  * Put the screen in "Existing paste" mode.
  */
 function stateExistingPaste() {
+    $('div#pastelink').hide();
     $('#message').hide();
     $('#toolbar').hide();
     $('pre#cleartext').show();
@@ -510,45 +511,52 @@ $(function() {
             $('input#opendiscussion').removeAttr('disabled');
         }
     });
+});
 
-    // Display an existing paste
-    var params = getParams();
-    if (params.paste.length !== 0) {
-        // Missing decryption key in URL ?
-        if (params.key.length === 0) {
-            showError('Error: Cannot decrypt paste - Decryption key missing in URL.');
-            return;
-        }
+var Zerobin = Backbone.Router.extend({
 
-        // Show proper elements on screen.
-        stateExistingPaste();
+    routes: {
+        "":                     "new_paste",
+        "*paste!*key":          "read_paste"
+    },
 
-        $.get('?'+params.paste)
-            .error(function() {
-                showError('Failed to fetch paste.');
-                return;
-            })
-            .success(function(messages){
-                try{
-                    messages = jQuery.parseJSON(messages);
-                } catch(e) {
-                    showError('Cound not parse response from server');
-                    return;
-                }
-                if(messages.error){
-                    showError(messages.error);
-                } else {
-                    displayMessages(params.key, messages);
-                }
-            });
-
-    }
-    // Display error message from php code.
-    else if ($('div#errormessage').text().length>1) {
-        showError('Error: ' + $('div#errormessage').text());
-    }
-    // Create a new paste.
-    else {
+    new_paste: function() {
         newPaste();
+    },
+
+    read_paste: function(paste, key) {
+        // Display an existing paste
+        var params = getParams();
+        if (params.paste.length !== 0) {
+            // Missing decryption key in URL ?
+            if (params.key.length === 0) {
+                showError('Error: Cannot decrypt paste - Decryption key missing in URL.');
+                return;
+            }
+
+            // Show proper elements on screen.
+            stateExistingPaste();
+
+            $.get('?'+params.paste)
+                .error(function() {
+                    showError('Failed to fetch paste.');
+                    return;
+                })
+                .success(function(messages){
+                    try{
+                        messages = jQuery.parseJSON(messages);
+                    } catch(e) {
+                        showError('Cound not parse response from server');
+                        return;
+                    }
+                    if(messages.error){
+                        showError(messages.error);
+                    } else {
+                        displayMessages(params.key, messages);
+                    }
+                });
+        }
     }
 });
+var zerobin = new Zerobin();
+Backbone.history.start();
