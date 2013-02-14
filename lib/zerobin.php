@@ -399,6 +399,8 @@ class zerobin
             {
                 $this->_error = 'Paste does not exist or has expired.';
             }
+        } else {
+            $this->_error = 'Invalid paste name.';
         }
     }
 
@@ -419,8 +421,12 @@ class zerobin
         header('Vary: Accept');
 
         // generate a json response for the reading requests, otherwise html
-        if($this->_data) {
-            echo $this->_data;
+        if(!empty($_SERVER['QUERY_STRING'])) {
+            if ($this->_error) {
+                echo json_encode(array('error' => $this->_error));
+            } else {
+                echo $this->_data;
+            }
         } else {
             $page = new RainTPL;
             // We escape it here because ENT_NOQUOTES can't be used in RainTPL templates.

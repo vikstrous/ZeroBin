@@ -520,13 +520,27 @@ $(function() {
             return;
         }
 
-        // TODO: make this more robust
-        $.get('?'+params.paste, function(messages){
-            // Show proper elements on screen.
-            stateExistingPaste();
+        // Show proper elements on screen.
+        stateExistingPaste();
 
-            displayMessages(params.key, jQuery.parseJSON(messages));
-        });
+        $.get('?'+params.paste)
+            .error(function() {
+                showError('Failed to fetch paste.');
+                return;
+            })
+            .success(function(messages){
+                try{
+                    messages = jQuery.parseJSON(messages);
+                } catch(e) {
+                    showError('Cound not parse response from server');
+                    return;
+                }
+                if(messages.error){
+                    showError(messages.error);
+                } else {
+                    displayMessages(params.key, messages);
+                }
+            });
 
     }
     // Display error message from php code.
