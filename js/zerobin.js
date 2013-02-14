@@ -455,28 +455,6 @@ function urls2links(element) {
     element.html(element.html().replace(re,'<a href="$1">$1</a>'));
 }
 
-/**
- * Return the deciphering key stored in anchor part of the URL
- */
-function pageKey() {
-    var key = window.location.hash.substring(1);  // Get key
-
-    // Some stupid web 2.0 services and redirectors add data AFTER the anchor
-    // (such as &utm_source=...).
-    // We will strip any additional data.
-
-    // First, strip everything after the equal sign (=) which signals end of base64 string.
-    i = key.indexOf('='); if (i>-1) { key = key.substring(0,i+1); }
-
-    // If the equal sign was not present, some parameters may remain:
-    i = key.indexOf('&'); if (i>-1) { key = key.substring(0,i); }
-
-    // Then add trailing equal sign if it's missing
-    if (key.charAt(key.length-1)!=='=') key+='=';
-
-    return key;
-}
-
 function getParams() {
     var params = window.location.hash.split('!');
     var paste = params[0].substr(1), key = params[1] || '';
@@ -526,10 +504,9 @@ var Zerobin = Backbone.Router.extend({
 
     read_paste: function(paste, key) {
         // Display an existing paste
-        var params = getParams();
-        if (params.paste.length !== 0) {
+        if (paste.length !== 0) {
             // Missing decryption key in URL ?
-            if (params.key.length === 0) {
+            if (key.length === 0) {
                 showError('Error: Cannot decrypt paste - Decryption key missing in URL.');
                 return;
             }
@@ -537,7 +514,7 @@ var Zerobin = Backbone.Router.extend({
             // Show proper elements on screen.
             stateExistingPaste();
 
-            $.get('?'+params.paste)
+            $.get('?'+paste)
                 .error(function() {
                     showError('Failed to fetch paste.');
                     return;
@@ -552,7 +529,7 @@ var Zerobin = Backbone.Router.extend({
                     if(messages.error){
                         showError(messages.error);
                     } else {
-                        displayMessages(params.key, messages);
+                        displayMessages(key, messages);
                     }
                 });
         }
