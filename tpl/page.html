@@ -47,17 +47,6 @@
     <noscript><div class="nonworking">Javascript is required for ZeroBin to work.<br>Sorry for the inconvenience.</div></noscript>
 
     <div class="container">
-
-
-      <div class="row">
-        <div class="span12">
-          <div id="attachment" style="display:none">
-            <a>Download attachment</a>
-          </div>
-        </div>
-      </div>
-
-
       <div class="row">
         <div class="span12">
           <div class="alert" id="status" style="display:none">&nbsp;</div>
@@ -69,7 +58,25 @@
           <div id="remainingtime" class="alert" style="display:none;"></div>
         </div>
       </div>
+    </div>
 
+    <div class="container">
+      <div class="row">
+        <div class="span12">
+          <div id="pastelink" class="alert alert-info" style="display:none;"></div>
+        </div>
+        <div class="span12">
+          <div id="attachment" style="display:none">
+            <a>Download attachment</a>
+          </div>
+        </div>
+        <div class="span12">
+          <pre id="cleartext" style="display:none;"></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
       <div class="row">
         <div id="message" class="span9">
           <textarea id="messageValue" class="span9" rows="20" name="message"></textarea>
@@ -142,15 +149,6 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="span12">
-          <div id="pastelink" class="alert alert-info" style="display:none;"></div>
-        </div>
-        <div class="span12">
-          <pre id="cleartext" style="display:none;"></pre>
-        </div>
-      </div>
-
       <div id="discussion" class="row" style="display:none;">
         <div class="span12">
           <hr />
@@ -158,12 +156,14 @@
           <div id="comments"></div>
         </div>
       </div>
+    </div> <!-- /container -->
 
+    <div class="container">
       <footer class="footer">
         <hr />
         <p>This is a fork of ZeroBin. ZeroBin is a minimalist, opensource online pastebin where the server has zero knowledge of pasted data. Data is encrypted/decrypted in the browser using 256 bits AES. More information on the <a href="https://github.com/vikstrous/ZeroBin">project page</a>.</p>
       </footer>
-    </div> <!-- /container -->
+    </div>
 
     <!-- Le javascript
     ================================================== -->
