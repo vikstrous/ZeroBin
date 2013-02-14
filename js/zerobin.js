@@ -455,14 +455,10 @@ function urls2links(element) {
     element.html(element.html().replace(re,'<a href="$1">$1</a>'));
 }
 
-function getParams() {
-    var params = window.location.hash.split('!');
-    var paste = params[0].substr(1), key = params[1] || '';
-
-    // Some stupid web 2.0 services and redirectors add data AFTER the anchor
-    // (such as &utm_source=...).
-    // We will strip any additional data.
-
+// Some stupid web 2.0 services and redirectors add data AFTER the anchor
+// (such as &utm_source=...).
+// We will strip any additional data.
+function cleanKey(key) {
     // First, strip everything after the equal sign (=) which signals end of base64 string.
     i = key.indexOf('='); if (i>-1) { key = key.substring(0,i+1); }
 
@@ -472,7 +468,13 @@ function getParams() {
     // Then add trailing equal sign if it's missing
     if (key.charAt(key.length-1)!=='=') key+='=';
 
-    return {'paste': paste, 'key': key};
+    return key;
+}
+
+function getParams() {
+    var params = window.location.hash.split('!');
+    var paste = params[0].substr(1), key = params[1] || '';
+    return {'paste': paste, 'key': cleanKey(key)};
 }
 
 $(function() {
@@ -502,17 +504,19 @@ var Zerobin = Backbone.Router.extend({
         newPaste();
     },
 
+    // Display an existing paste
     read_paste: function(paste, key) {
-        // Display an existing paste
         if (paste.length !== 0) {
+            // Show proper elements on screen.
+            stateExistingPaste();
+
             // Missing decryption key in URL ?
             if (key.length === 0) {
                 showError('Error: Cannot decrypt paste - Decryption key missing in URL.');
                 return;
             }
+            key = cleanKey(key);
 
-            // Show proper elements on screen.
-            stateExistingPaste();
 
             $.get('?'+paste)
                 .error(function() {
