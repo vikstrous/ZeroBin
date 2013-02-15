@@ -138,9 +138,6 @@ function displayMessages(key, comments) {
     setElementText($('pre#cleartext'), cleartext);
     urls2links($('pre#cleartext')); // Convert URLs to clickable links.
     $('pre#cleartext').snippet(comments[0].meta.language, {style:"ide-codewarrior"});
-    $('pre#cleartext').hide();
-    $('pre#cleartext').show();
-    $('pre#cleartext').snippet(comments[0].meta.language, {style:"ide-codewarrior"});
     // Display paste expiration.
     if (comments[0].meta.expire_date) {
         $('div#remainingtime')
@@ -340,51 +337,6 @@ function send_data() {
         }
 }
 
-/**
- * Put the screen in "New paste" mode.
- */
-function stateNewPaste() {
-    $('div#attach').show();
-    $('div#attachment').hide();
-    $('button#sendbutton').show();
-    $('div#expiration').show();
-    $('div#remainingtime').hide();
-    $('div#language').show();
-    $('input#password').hide(); //$('#password').show();
-    $('div#opendisc').show();
-    $('button#newbutton').show();
-    $('div#pastelink').hide();
-    $('textarea#messageValue').text('');
-    $('textarea#message').show();
-    $('pre#cleartext').hide();
-    $('textarea#messageValue').focus();
-    $('div#discussion').hide();
-}
-
-/**
- * Put the screen in "New paste" mode.
- */
-function statePreviewPaste(paste, key) {
-
-    var url = scriptLocation() + "#read!" + paste + '!' + key;
-    $('div#pastelink').html('Paste url: <a href="' + url + '">' + url + '</a>').show();
-    showStatus('');
-
-    $('div#pastelink').show();
-    $('#message').hide();
-    $('#toolbar').hide();
-    $('pre#cleartext').show();
-}
-
-/**
- * Put the screen in "Existing paste" mode.
- */
-function stateExistingPaste() {
-    $('div#pastelink').hide();
-    $('#message').hide();
-    $('#toolbar').hide();
-    $('pre#cleartext').show();
-}
 
 // /**
 //  * Clone the current paste.
@@ -403,7 +355,7 @@ function stateExistingPaste() {
  * Create a new paste.
  */
 function newPaste() {
-    stateNewPaste();
+    sendPage.render();
     showStatus('');
     $('textarea#messageValue').text('');
 }
@@ -505,6 +457,64 @@ $(function() {
     });
 });
 
+var ReadPage = Backbone.View.extend({
+    render: function(paste, key){
+        $('#read-page').show();
+        $('#pastelink').hide();
+        $('#send-page').hide();
+        $('div#pastelink').hide();
+        $('#message').hide();
+        $('#toolbar').hide();
+        $('pre#cleartext').show();
+    }
+});
+
+var readPage = new ReadPage();
+
+var PreviewPage = Backbone.View.extend({
+    render: function(paste, key){
+        $('#read-page').show();
+        $('#pastelink').show();
+        $('#send-page').hide();
+
+        var url = scriptLocation() + "#read!" + paste + '!' + key;
+        $('div#pastelink').html('Paste url: <a href="' + url + '">' + url + '</a>').show();
+        showStatus('');
+
+        $('div#pastelink').show();
+        $('#message').hide();
+        $('#toolbar').hide();
+        $('pre#cleartext').show();
+
+    }
+});
+
+var previewPage = new PreviewPage();
+
+var SendPage = Backbone.View.extend({
+  render: function() {
+    $('#read-page').hide();
+    $('#send-page').show();
+    $('div#attach').show();
+    $('div#attachment').hide();
+    $('button#sendbutton').show();
+    $('div#expiration').show();
+    $('div#remainingtime').hide();
+    $('div#language').show();
+    $('input#password').hide(); //$('#password').show();
+    $('div#opendisc').show();
+    $('button#newbutton').show();
+    $('div#pastelink').hide();
+    $('textarea#messageValue').text('');
+    $('textarea#message').show();
+    $('pre#cleartext').hide();
+    $('textarea#messageValue').focus();
+    $('div#discussion').hide();
+  }
+});
+
+var sendPage = new SendPage();
+
 var ZerobinRouter = Backbone.Router.extend({
 
     routes: {
@@ -516,14 +526,16 @@ var ZerobinRouter = Backbone.Router.extend({
         newPaste();
     },
 
+    // TODO: make preview a separate route that doesn't require a re-download of the data
+
     // Display an existing paste
     read_paste: function(action, paste, key) {
         if (paste.length !== 0 && action.length !== 0) {
             // Show proper elements on screen.
             if(action == 'read')
-                stateExistingPaste();
+                readPage.render();
             else if (action == 'preview')
-                statePreviewPaste(paste, key);
+                previewPage.render(paste, key);
             else return;
 
             // Missing decryption key in URL ?
