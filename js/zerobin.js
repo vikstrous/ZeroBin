@@ -458,38 +458,54 @@ $(function() {
 });
 
 var ReadPage = Backbone.View.extend({
-    render: function(paste, key){
+    render: function(paste, key, preview){
+
+        if (preview) {
+            var url = scriptLocation() + "#read!" + paste + '!' + key;
+            $('div#pastelink').html('Paste url: <a href="' + url + '">' + url + '</a>').show();
+            $('#pastelink').show();
+            showStatus('');
+        } else {
+            $('#pastelink').hide();
+        }
+
         $('#read-page').show();
-        $('#pastelink').hide();
         $('#send-page').hide();
-        $('div#pastelink').hide();
         $('#message').hide();
         $('#toolbar').hide();
         $('pre#cleartext').show();
+
+        // Missing decryption key in URL ?
+        if (key.length === 0) {
+            showError('Error: Cannot decrypt paste - Decryption key missing in URL.');
+            return;
+        }
+        key = cleanKey(key);
+
+
+        $.get('?'+paste)
+            .error(function() {
+                showError('Failed to fetch paste.');
+                return;
+            })
+            .success(function(messages){
+                try{
+                    messages = jQuery.parseJSON(messages);
+                } catch(e) {
+                    showError('Cound not parse response from server');
+                    return;
+                }
+                if(messages.error){
+                    showError(messages.error);
+                } else {
+                    displayMessages(key, messages);
+                }
+            });
+
     }
 });
 
 var readPage = new ReadPage();
-
-var PreviewPage = Backbone.View.extend({
-    render: function(paste, key){
-        $('#read-page').show();
-        $('#pastelink').show();
-        $('#send-page').hide();
-
-        var url = scriptLocation() + "#read!" + paste + '!' + key;
-        $('div#pastelink').html('Paste url: <a href="' + url + '">' + url + '</a>').show();
-        showStatus('');
-
-        $('div#pastelink').show();
-        $('#message').hide();
-        $('#toolbar').hide();
-        $('pre#cleartext').show();
-
-    }
-});
-
-var previewPage = new PreviewPage();
 
 var SendPage = Backbone.View.extend({
   render: function() {
@@ -533,37 +549,9 @@ var ZerobinRouter = Backbone.Router.extend({
         if (paste.length !== 0 && action.length !== 0) {
             // Show proper elements on screen.
             if(action == 'read')
-                readPage.render();
+                readPage.render(paste, key);
             else if (action == 'preview')
-                previewPage.render(paste, key);
-            else return;
-
-            // Missing decryption key in URL ?
-            if (key.length === 0) {
-                showError('Error: Cannot decrypt paste - Decryption key missing in URL.');
-                return;
-            }
-            key = cleanKey(key);
-
-
-            $.get('?'+paste)
-                .error(function() {
-                    showError('Failed to fetch paste.');
-                    return;
-                })
-                .success(function(messages){
-                    try{
-                        messages = jQuery.parseJSON(messages);
-                    } catch(e) {
-                        showError('Cound not parse response from server');
-                        return;
-                    }
-                    if(messages.error){
-                        showError(messages.error);
-                    } else {
-                        displayMessages(key, messages);
-                    }
-                });
+                readPage.render(paste, key, true);
         }
     }
 });
