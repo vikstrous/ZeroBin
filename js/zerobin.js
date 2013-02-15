@@ -138,6 +138,9 @@ function displayMessages(key, comments) {
     setElementText($('pre#cleartext'), cleartext);
     urls2links($('pre#cleartext')); // Convert URLs to clickable links.
     $('pre#cleartext').snippet(comments[0].meta.language, {style:"ide-codewarrior"});
+    $('pre#cleartext').hide();
+    $('pre#cleartext').show();
+    $('pre#cleartext').snippet(comments[0].meta.language, {style:"ide-codewarrior"});
     // Display paste expiration.
     if (comments[0].meta.expire_date) {
         $('div#remainingtime')
@@ -325,13 +328,7 @@ function send_data() {
             })
             .success(function(data) {
                 if (data.status == 0) {
-                    stateExistingPaste();
-                    var url = scriptLocation() + "#" + data.id + '!' + randomkey;
-                    showStatus('');
-                    $('div#pastelink').html('Paste url: <a href="' + url + '">' + url + '</a>').show();
-                    setElementText($('pre#cleartext'), $('textarea#messageValue').val());
-                    urls2links($('pre#cleartext'));
-                    showStatus('');
+                    zerobinRouter.navigate('preview!' + data.id + '!' + randomkey, {trigger: true});
                 }
                 else if (data.status==1) {
                     showError('Could not create paste - '+data.message);
@@ -362,6 +359,21 @@ function stateNewPaste() {
     $('pre#cleartext').hide();
     $('textarea#messageValue').focus();
     $('div#discussion').hide();
+}
+
+/**
+ * Put the screen in "New paste" mode.
+ */
+function statePreviewPaste(paste, key) {
+
+    var url = scriptLocation() + "#read!" + paste + '!' + key;
+    $('div#pastelink').html('Paste url: <a href="' + url + '">' + url + '</a>').show();
+    showStatus('');
+
+    $('div#pastelink').show();
+    $('#message').hide();
+    $('#toolbar').hide();
+    $('pre#cleartext').show();
 }
 
 /**
@@ -493,11 +505,11 @@ $(function() {
     });
 });
 
-var Zerobin = Backbone.Router.extend({
+var ZerobinRouter = Backbone.Router.extend({
 
     routes: {
-        "":                     "new_paste",
-        "*paste!*key":          "read_paste"
+        "":                             "new_paste",
+        "*action!*paste!*key":          "read_paste"
     },
 
     new_paste: function() {
@@ -505,10 +517,14 @@ var Zerobin = Backbone.Router.extend({
     },
 
     // Display an existing paste
-    read_paste: function(paste, key) {
-        if (paste.length !== 0) {
+    read_paste: function(action, paste, key) {
+        if (paste.length !== 0 && action.length !== 0) {
             // Show proper elements on screen.
-            stateExistingPaste();
+            if(action == 'read')
+                stateExistingPaste();
+            else if (action == 'preview')
+                statePreviewPaste(paste, key);
+            else return;
 
             // Missing decryption key in URL ?
             if (key.length === 0) {
@@ -539,5 +555,5 @@ var Zerobin = Backbone.Router.extend({
         }
     }
 });
-var zerobin = new Zerobin();
+var zerobinRouter = new ZerobinRouter();
 Backbone.history.start();
