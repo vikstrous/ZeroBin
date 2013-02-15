@@ -352,15 +352,6 @@ function send_data() {
 // }
 
 /**
- * Create a new paste.
- */
-function newPaste() {
-    sendPage.render();
-    showStatus('');
-    $('textarea#messageValue').text('');
-}
-
-/**
  * Display an error message
  * (We use the same function for paste and reply to comments)
  */
@@ -471,9 +462,6 @@ var ReadPage = Backbone.View.extend({
 
         $('#read-page').show();
         $('#send-page').hide();
-        $('#message').hide();
-        $('#toolbar').hide();
-        $('pre#cleartext').show();
 
         // Missing decryption key in URL ?
         if (key.length === 0) {
@@ -511,21 +499,9 @@ var SendPage = Backbone.View.extend({
   render: function() {
     $('#read-page').hide();
     $('#send-page').show();
-    $('div#attach').show();
-    $('div#attachment').hide();
-    $('button#sendbutton').show();
-    $('div#expiration').show();
-    $('div#remainingtime').hide();
-    $('div#language').show();
-    $('input#password').hide(); //$('#password').show();
-    $('div#opendisc').show();
-    $('button#newbutton').show();
-    $('div#pastelink').hide();
-    $('textarea#messageValue').text('');
-    $('textarea#message').show();
-    $('pre#cleartext').hide();
-    $('textarea#messageValue').focus();
-    $('div#discussion').hide();
+    $('#messageValue').val('');
+    $('#messageValue').focus();
+    showStatus('');
   }
 });
 
@@ -539,7 +515,7 @@ var ZerobinRouter = Backbone.Router.extend({
     },
 
     new_paste: function() {
-        newPaste();
+        sendPage.render();
     },
 
     // TODO: make preview a separate route that doesn't require a re-download of the data
