@@ -68,9 +68,9 @@
     </div>
     <script type="text/template" id="read-page-tpl">
       <div class="row">
-        {{! if(pastelink) { }}
+        {{! if(preview) { }}
         <div class="span12">
-          <div id="pastelink" class="alert alert-info">Paste url: <a href="{{pastelink}}">{{pastelink}}</a></div>
+          <div class="alert alert-info">Paste url: <a href="{{pastelink}}">{{pastelink}}</a></div>
         </div>
         {{! } }}
         <div class="span12">
@@ -82,13 +82,15 @@
           <pre id="cleartext"></pre>
         </div>
       </div>
-      <div id="discussion" class="row" style="display:none;">
+      {{! if(opendiscussion) { }}
+      <div id="discussion" class="row">
         <div class="span12">
           <hr />
           <h3>Comments</h3>
           <div id="comments"></div>
         </div>
       </div>
+      {{! } }}
     </script>
 
     <script type="text/template" id="send-page-tpl">

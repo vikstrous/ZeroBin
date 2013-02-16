@@ -164,21 +164,20 @@ function open_reply(source, commentid) {
  */
 function send_comment(parentid) {
     // Do not send if no data.
-    if ($('textarea#replymessage').val().length==0) {
+    if ($('#replymessage').val().length===0) {
         return;
     }
 
     showStatus('Sending comment...', spin=true);
-    var params = getParams();
-    var cipherdata = zeroCipher(params.key, $('textarea#replymessage').val());
+    var cipherdata = zeroCipher(globalState.get('key'), $('textarea#replymessage').val());
     var ciphernickname = '';
     var nick=$('input#nickname').val();
-    if (nick != '') {
-        ciphernickname = zeroCipher(params.key, nick);
+    if (nick !== '') {
+        ciphernickname = zeroCipher(globalState.get('key'), nick);
     }
     var data_to_send = { data:cipherdata,
                          parentid: parentid,
-                         pasteid:  pasteID(),
+                         pasteid:  globalState.get('pasteid'),
                          nickname: ciphernickname
                        };
 
@@ -290,13 +289,6 @@ function cleanKey(key) {
     return key;
 }
 
-function getParams() {
-    var params = window.location.hash.split('!');
-    var paste = params[0].substr(1), key = params[1] || '';
-    return {'paste': paste, 'key': cleanKey(key)};
-}
-
-
 var Message = Backbone.Model.extend({
   defaults: {
     data: '',
@@ -331,6 +323,7 @@ var ReadPage = Backbone.View.extend({
      * @param array comments : Array of messages to display (items = array with keys ('data','meta')
      */
     displayMessages: function () {
+        var pasteid = globalState.get('pasteid');
         var key = globalState.get('key');
         var comments = globalState.get('messages').toJSON();
         var attachment = comments[0].attachment, cleartext = comments[0].data;
@@ -409,12 +402,16 @@ var ReadPage = Backbone.View.extend({
 
                 place.append(divComment);
             }
-            $('div#comments').append('<div class="comment"><button class="btn" onclick="open_reply($(this),\'' + pasteID() + '\');return false;">Add comment</button></div>');
+            $('div#comments').append('<div class="comment"><button class="btn" onclick="open_reply($(this),\'' + pasteid + '\');return false;">Add comment</button></div>');
             $('div#discussion').show();
         }
     },
-    render: function(paste, key){
-        this.$el.html(this.template({pastelink: globalState.get('preview') ? scriptLocation() + "read!" + paste + '!' + key : false}));
+    render: function(){
+        this.$el.html(this.template({
+            preview: globalState.get('preview'),
+            opendiscussion: globalState.get('messages').at(0).get('meta').opendiscussion,
+            pastelink: scriptLocation() + "read!" + globalState.get('pasteid') + '!' + globalState.get('key')
+        }));
         $('#app').empty();
         this.$el.appendTo('#app');
         this.delegateEvents();
@@ -561,18 +558,21 @@ var controller = {
             if(msgs.error){
                 showError(msgs.error);
             } else {
+                globalState.set('pasteid', paste);
                 globalState.set('key', key);
                 globalState.set('preview', false);
                 globalState.get('messages').reset(msgs);
-                readPage.render(paste, key);
+                readPage.render();
             }
         }, this));
 
         zerobinRouter.navigate('read!' + paste + '!' + key);
     },
     preview: function(paste, key){
+        globalState.set('pasteid', paste);
+        globalState.set('key', key);
         globalState.set('preview', true);
-        readPage.render(paste, key);
+        readPage.render();
     },
     new_paste: function(){
         newPage.render();

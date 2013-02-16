@@ -258,7 +258,7 @@ class zerobin
         if ($error) $this->_return_message(1, 'Invalid data.');
 
         // Store the language of the paste
-        $meta['language'] = $_POST['language'];
+        $meta['language'] = array_key_exists('language', $_POST) ? $_POST['language'] : 'none';
 
         // Add post date to meta.
         $meta['postdate'] = time();
