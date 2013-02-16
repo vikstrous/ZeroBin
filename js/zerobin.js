@@ -362,23 +362,23 @@ var ReadPage = Backbone.View.extend({
             // For each comment.
             for (var i = 1; i < comments.length; i++) {
                 var comment=comments[i];
-                var cleartext="[Could not decrypt comment ; Wrong key ?]";
+                cleartext = "[Could not decrypt comment ; Wrong key ?]";
                 try {
                     cleartext = zeroDecipher(key, comment.data);
                 } catch(err) { }
                 var place = $('div#comments');
                 // If parent comment exists, display below (CSS will automatically shift it right.)
-                var cname = 'div#comment_'+comment.meta.parentid
+                var cname = 'div#comment_'+comment.meta.parentid;
 
                 // If the element exists in page
                 if ($(cname).length) {
                     place = $(cname);
                 }
 
-                var divComment = $('<blockquote><div class="comment" id="comment_' + comment.meta.commentid+'">'
-                                   + '<div class="commentmeta"><strong class="nickname"></strong><span class="commentdate"></span></div><div class="commentdata"></div>'
-                                   + '<button class="btn" onclick="open_reply($(this),\'' + comment.meta.commentid + '\');return false;">Reply</button>'
-                                   + '</div></blockquote>');
+                var divComment = $('<blockquote><div class="comment" id="comment_' + comment.meta.commentid+'">'+
+                                   '<div class="commentmeta"><strong class="nickname"></strong><span class="commentdate"></span></div><div class="commentdata"></div>'+
+                                   '<button class="btn" onclick="open_reply($(this),\'' + comment.meta.commentid + '\');return false;">Reply</button>'+
+                                   '</div></blockquote>');
                 setElementText(divComment.find('div.commentdata'), cleartext);
                 // Convert URLs to clickable links in comment.
                 urls2links(divComment.find('div.commentdata'));
