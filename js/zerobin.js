@@ -14,9 +14,9 @@ sjcl.random.startCollectors();
 
 // Change template strings for underscore templating
 _.templateSettings = {
+  evaluate : /\{\{\!(.+?)\}\}/g,
   interpolate : /\{\{\{(.+?)\}\}\}/g,
-  escape : /\{\{(.+?)\}\}/g,
-  evaluate : /\{\{!!!(.+?)\}\}/g
+  escape : /\{\{(?!\{)(?!\!)(.+?)\}\}/g
 };
 
 /**
@@ -449,16 +449,11 @@ var ReadPage = Backbone.View.extend({
     id: 'read-page',
     template: _.template($('#read-page-tpl').html()),
     render: function(paste, key, preview){
-        this.$el.html(this.template());
+        this.$el.html(this.template({pastelink: preview ? scriptLocation() + "#read!" + paste + '!' + key : false}));
         $('#app').empty();
         this.$el.appendTo('#app');
         if (preview) {
-            var url = scriptLocation() + "#read!" + paste + '!' + key;
-            $('#pastelink').html('Paste url: <a href="' + url + '">' + url + '</a>').show();
-            $('#pastelink').show();
             showStatus('');
-        } else {
-            $('#pastelink').hide();
         }
         this.delegateEvents();
 

@@ -64,9 +64,11 @@
     </div>
     <script type="text/template" id="read-page-tpl">
       <div class="row">
+        {{! if(pastelink) { }}
         <div class="span12">
-          <div id="pastelink" class="alert alert-info" style="display:none;"></div>
+          <div id="pastelink" class="alert alert-info">Paste url: <a href="{{pastelink}}">{{pastelink}}</a></div>
         </div>
+        {{! } }}
         <div class="span12">
           <div id="attachment" style="display:none">
             <a>Download attachment</a>
@@ -170,7 +172,7 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="js/lib/jquery.js#"></script>
-    <script src="js/lib/underscore-min.js#"></script>
+    <script src="js/lib/underscore.js#"></script>
     <script src="js/lib/backbone-min.js#"></script>
 
     <script src="js/lib/bootstrap.min.js#"></script>
