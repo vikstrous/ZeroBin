@@ -317,8 +317,11 @@ var ReadPage = Backbone.View.extend({
     displayMessages: function () {
         var pasteid = globalState.get('pasteid');
         var key = globalState.get('key');
-        var comments = globalState.get('messages').toJSON();
-        var attachment = comments[0].attachment, cleartext = comments[0].data;
+        var comments = globalState.get('messages').toJSON(),
+            paste = comments[0],
+            attachment = paste.attachment,
+            cleartext = paste.data;
+        comments = _.rest(comments);
         if(!globalState.get('preview')) {
             try { // Try to decrypt the paste.
                 cleartext = zeroDecipher(key, cleartext);
@@ -342,14 +345,14 @@ var ReadPage = Backbone.View.extend({
 
         setElementText($('pre#cleartext'), cleartext);
         urls2links($('pre#cleartext')); // Convert URLs to clickable links.
-        $('pre#cleartext').snippet(comments[0].meta.language, {style:"ide-codewarrior"});
+        $('pre#cleartext').snippet(paste.meta.language, {style:"ide-codewarrior"});
         // Display paste expiration.
-        if (comments[0].meta.expire_date) {
+        if (paste.meta.expire_date) {
             $('#remainingtime')
-                .html('<i class="icon-time"></i> This document will expire in '+secondsToHuman(comments[0].meta.remaining_time)+'.')
+                .html('<i class="icon-time"></i> This document will expire in '+secondsToHuman(paste.meta.remaining_time)+'.')
                 .show();
         }
-        if (comments[0].meta.burnafterreading) {
+        if (paste.meta.burnafterreading) {
             $('#remainingtime')
                 .addClass('alert-error')
                 .html('<i class="icon-fire"></i> <strong>FOR YOUR EYES ONLY.</strong> Don\'t close this window, this message will self destruct.')
@@ -357,7 +360,7 @@ var ReadPage = Backbone.View.extend({
         }
 
         // If the discussion is opened on this paste, display it.
-        if (comments[0].meta.opendiscussion) {
+        if (paste.meta.opendiscussion) {
             $('div#comments').html('');
             // For each comment.
             for (var i = 1; i < comments.length; i++) {
