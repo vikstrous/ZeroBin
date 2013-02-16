@@ -12,6 +12,13 @@
 // Immediately start random number generator collector.
 sjcl.random.startCollectors();
 
+// Change template strings for underscore templating
+_.templateSettings = {
+  interpolate : /\{\{\{(.+?)\}\}\}/g,
+  escape : /\{\{(.+?)\}\}/g,
+  evaluate : /\{\{!!!(.+?)\}\}/g
+};
+
 /**
  *  Converts a duration (in seconds) into human readable format.
  *
@@ -449,19 +456,18 @@ $(function() {
 });
 
 var ReadPage = Backbone.View.extend({
+    template: _.template($('#read-page-tpl').html()),
     render: function(paste, key, preview){
-
+        $('#send-page').hide();
+        $('#read-page').html(this.template()).show();
         if (preview) {
             var url = scriptLocation() + "#read!" + paste + '!' + key;
-            $('div#pastelink').html('Paste url: <a href="' + url + '">' + url + '</a>').show();
+            $('#pastelink').html('Paste url: <a href="' + url + '">' + url + '</a>').show();
             $('#pastelink').show();
             showStatus('');
         } else {
             $('#pastelink').hide();
         }
-
-        $('#read-page').show();
-        $('#send-page').hide();
 
         // Missing decryption key in URL ?
         if (key.length === 0) {
@@ -496,13 +502,14 @@ var ReadPage = Backbone.View.extend({
 var readPage = new ReadPage();
 
 var SendPage = Backbone.View.extend({
-  render: function() {
-    $('#read-page').hide();
-    $('#send-page').show();
-    $('#messageValue').val('');
-    $('#messageValue').focus();
-    showStatus('');
-  }
+    template: _.template($('#send-page-tpl').html()),
+    render: function() {
+        $('#read-page').hide();
+        $('#messageValue').val('');
+        $('#messageValue').focus();
+        showStatus('');
+        $('#send-page').html(this.template()).show();
+    }
 });
 
 var sendPage = new SendPage();
