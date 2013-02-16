@@ -185,35 +185,6 @@ class zerobin
         // Read additional meta-information.
         $meta=array();
 
-        // Read expiration date
-        switch ($_POST['expire'])
-        {
-            case 'burn':
-                $meta['burnafterreading'] = true;
-                break;
-            case '5min':
-                $meta['expire_date'] = time()+5*60;
-                break;
-            case '10min':
-                $meta['expire_date'] = time()+10*60;
-                break;
-            case '1hour':
-                $meta['expire_date'] = time()+60*60;
-                break;
-            case '1day':
-                $meta['expire_date'] = time()+24*60*60;
-                break;
-            case '1week':
-                $meta['expire_date'] = time()+7*24*60*60;
-                break;
-            case '1month':
-                $meta['expire_date'] = strtotime('+1 month');
-                break;
-            case '1year':
-                $meta['expire_date'] = strtotime('+1 year');
-            default:
-                $meta['expire_date'] = strtotime('+1 year');
-        }
 
         // Read open discussion flag.
         if ($this->_conf['main']['opendiscussion'] && !empty($_POST['opendiscussion']))
@@ -270,8 +241,6 @@ class zerobin
         if($has_attachment)
             $storage['attachment'] = $attachment;
 
-        // Add meta-information only if necessary.
-        if (count($meta)) $storage['meta'] = $meta;
 
         // The user posts a comment.
         if (
@@ -289,6 +258,9 @@ class zerobin
             // Comments do not expire (it's the paste that expires)
             unset($storage['expire_date']);
             unset($storage['opendiscussion']);
+
+            // Add meta-information only if necessary.
+            if (count($meta)) $storage['meta'] = $meta;
 
             // Make sure paste exists.
             if (
@@ -317,6 +289,39 @@ class zerobin
         // The user posts a standard paste.
         else
         {
+            // Read expiration date
+            switch ($_POST['expire'])
+            {
+                case 'burn':
+                    $meta['burnafterreading'] = true;
+                    break;
+                case '5min':
+                    $meta['expire_date'] = time()+5*60;
+                    break;
+                case '10min':
+                    $meta['expire_date'] = time()+10*60;
+                    break;
+                case '1hour':
+                    $meta['expire_date'] = time()+60*60;
+                    break;
+                case '1day':
+                    $meta['expire_date'] = time()+24*60*60;
+                    break;
+                case '1week':
+                    $meta['expire_date'] = time()+7*24*60*60;
+                    break;
+                case '1month':
+                    $meta['expire_date'] = strtotime('+1 month');
+                    break;
+                case '1year':
+                    $meta['expire_date'] = strtotime('+1 year');
+                default:
+                    $meta['expire_date'] = strtotime('+1 year');
+            }
+            
+            // Add meta-information only if necessary.
+            if (count($meta)) $storage['meta'] = $meta;
+
             // Check for improbable collision.
             if (
                 $this->_model()->exists($dataid)
