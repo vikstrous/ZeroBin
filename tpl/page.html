@@ -58,15 +58,20 @@
         <div class="span12">
           <div class="alert alert-error" id="errormessage" style="display:none"></div>
         </div>
-        <div class="span12">
-          <div id="remainingtime" class="alert" style="display:none;"></div>
-        </div>
       </div>
     </div>
 
     <div class="container" id="app">
     </div>
     <script type="text/template" id="read-page-tpl">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <div id="remainingtime" class="alert" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="row">
         {{! if(preview) { }}
         <div class="span12">
@@ -125,11 +130,13 @@
             <label for="pasteExpiration">Expiration:</label>
             <select class="span2" id="pasteExpiration" name="pasteExpiration">
               <option value="burn">Burn after reading</option>
+              <option value="5min">10 minutes</option>
               <option value="10min">10 minutes</option>
               <option value="1hour">1 hour</option>
               <option value="1day">1 day</option>
-              <option value="3day">3 days</option>
-              <option value="7day" selected="selected">1 week</option>
+              <option value="1week" selected="selected">1 week</option>
+              <option value="1month">1 month</option>
+              <option value="1year">1 year</option>
             </select>
 
             <label for="language">Language:</label>

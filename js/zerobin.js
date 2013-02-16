@@ -350,12 +350,12 @@ var ReadPage = Backbone.View.extend({
         $('pre#cleartext').snippet(comments[0].meta.language, {style:"ide-codewarrior"});
         // Display paste expiration.
         if (comments[0].meta.expire_date) {
-            $('div#remainingtime')
+            $('#remainingtime')
                 .html('<i class="icon-time"></i> This document will expire in '+secondsToHuman(comments[0].meta.remaining_time)+'.')
                 .show();
         }
         if (comments[0].meta.burnafterreading) {
-            $('div#remainingtime')
+            $('#remainingtime')
                 .addClass('alert-error')
                 .html('<i class="icon-fire"></i> <strong>FOR YOUR EYES ONLY.</strong> Don\'t close this window, this message will self destruct.')
                 .show();
@@ -573,6 +573,7 @@ var controller = {
         globalState.set('key', key);
         globalState.set('preview', true);
         readPage.render();
+        zerobinRouter.navigate('preview');
     },
     new_paste: function(){
         newPage.render();
@@ -585,6 +586,7 @@ var ZerobinRouter = Backbone.Router.extend({
 
     routes: {
         "":                          "new_paste",
+        "preview":                   "new_paste",
         "read!*paste!*key":          "read_paste"
     },
 

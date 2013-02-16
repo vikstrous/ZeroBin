@@ -186,34 +186,33 @@ class zerobin
         $meta=array();
 
         // Read expiration date
-        if (!empty($_POST['expire']))
+        switch ($_POST['expire'])
         {
-            switch ($_POST['expire'])
-            {
-                case 'burn':
-                    $meta['burnafterreading'] = true;
-                    break;
-                case '5min':
-                    $meta['expire_date'] = time()+5*60;
-                    break;
-                case '10min':
-                    $meta['expire_date'] = time()+10*60;
-                    break;
-                case '1hour':
-                    $meta['expire_date'] = time()+60*60;
-                    break;
-                case '1day':
-                    $meta['expire_date'] = time()+24*60*60;
-                    break;
-                case '1week':
-                    $meta['expire_date'] = time()+7*24*60*60;
-                    break;
-                case '1month':
-                    $meta['expire_date'] = strtotime('+1 month');
-                    break;
-                case '1year':
-                    $meta['expire_date'] = strtotime('+1 year');
-            }
+            case 'burn':
+                $meta['burnafterreading'] = true;
+                break;
+            case '5min':
+                $meta['expire_date'] = time()+5*60;
+                break;
+            case '10min':
+                $meta['expire_date'] = time()+10*60;
+                break;
+            case '1hour':
+                $meta['expire_date'] = time()+60*60;
+                break;
+            case '1day':
+                $meta['expire_date'] = time()+24*60*60;
+                break;
+            case '1week':
+                $meta['expire_date'] = time()+7*24*60*60;
+                break;
+            case '1month':
+                $meta['expire_date'] = strtotime('+1 month');
+                break;
+            case '1year':
+                $meta['expire_date'] = strtotime('+1 year');
+            default:
+                $meta['expire_date'] = strtotime('+1 year');
         }
 
         // Read open discussion flag.
