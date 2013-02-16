@@ -109,14 +109,6 @@ function setElementText(element, text) {
     }
 }
 
-/**
- * Remove the current attachment (either copied from another paste and in the file selector)
- */
-function remove_attachment() {
-    $('#cloned-file').hide();
-    $('#attachment a').attr('href', ''); // removes the saved decrypted file data
-    $('#file-wrap').show();
-}
 
 
 /**
@@ -342,7 +334,10 @@ var ReadPage = Backbone.View.extend({
 
         if(attachment) {
             $('#attachment').show();
-            $('#attachment a').attr('href', attachment);
+            $('#attachment a').click(function(){
+                window.open(attachment, '_blank');
+                window.focus();
+            });
         }
 
         setElementText($('pre#cleartext'), cleartext);
@@ -429,8 +424,18 @@ var NewPage = Backbone.View.extend({
     template: _.template($('#send-page-tpl').html()),
     events: {
         'change #pasteExpiration': 'changePasteExpiration',
-        'click #sendbutton': 'send_data'
+        'click #sendbutton': 'sendData',
+        'click .fileupload-exists': 'removeAttachment'
     },
+    /**
+     * Remove the current attachment (either copied from another paste and in the file selector)
+     */
+    removeAttachment: function() {
+        // TODO: bring this back when cloning is back
+        // $('#cloned-file').hide();
+        $('#file-wrap').show();
+    },
+
     changePasteExpiration: function(e) {
         if ($(e.target).val() == 'burn') {
             this.$('#opendiscussion').attr('disabled', true).attr('checked', false);
@@ -440,7 +445,7 @@ var NewPage = Backbone.View.extend({
         }
     },
 
-    upload_paste: function (cipherdata, cipherdata_attachment, expire, language, opendiscussion, key) {
+    uploadPaste: function (cipherdata, cipherdata_attachment, expire, language, opendiscussion, key) {
         var data_to_send = { data:           cipherdata,
                              attachment:     cipherdata_attachment,
                              expire:         expire,
@@ -467,7 +472,7 @@ var NewPage = Backbone.View.extend({
     /**
      *  Send a new paste to server
      */
-    send_data: function() {
+    sendData: function() {
         var cipherdata, reader, randomkey, files, expiration, language, opendiscussion, plaintext;
         // Do not send if no data.
         files = this.$('#file')[0].files; // FileList object
@@ -496,7 +501,7 @@ var NewPage = Backbone.View.extend({
             reader = new FileReader();
             reader.onload = _.bind(function(e) {
                 globalState.get('messages').at(0).set('attachment', e.target.result);
-                this.upload_paste(
+                this.uploadPaste(
                     cipherdata,
                     zeroCipher(randomkey, e.target.result),
                     expiration,
@@ -508,11 +513,12 @@ var NewPage = Backbone.View.extend({
             reader.readAsDataURL(files[0]);
         }
         // Clone case:
+        // TODO: in case of cloning get it from the state object. It doesn't exist here any more.
         /* else if($('div#attachment a').attr('href')) {
             the_rest(cipherdata, zeroCipher(randomkey, $('div#attachment a').attr('href')));
         }*/
         else {
-            this.upload_paste(
+            this.uploadPaste(
                 cipherdata,
                 undefined,
                 expiration,
