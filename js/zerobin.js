@@ -14,9 +14,9 @@ sjcl.random.startCollectors();
 
 // Change template strings for underscore templating
 _.templateSettings = {
-  evaluate : /\{\{\!(.+?)\}\}/g,
-  interpolate : /\{\{\{(.+?)\}\}\}/g,
-  escape : /\{\{(?!\{)(?!\!)(.+?)\}\}/g
+  evaluate : /\{\{\!([\s\S]+?)\}\}/g,
+  interpolate : /\{\{\{([\s\S]+?)\}\}\}/g,
+  escape : /\{\{(?!\{)(?!\!)([\s\S]+?)\}\}/g
 };
 
 /**
@@ -259,10 +259,15 @@ function showStatus(message, spin) {
  * @FIXME: add ppa & apt links.
  */
 function urls2links(element) {
-    var re = /((http|https|ftp):\/\/[\w?=&.\/-;#@~%+-]+(?![\w\s?&.\/;#~%"=-]*>))/ig;
-    element.html(element.html().replace(re,'<a href="$1" rel="nofollow">$1</a>'));
-    var re = /((magnet):[\w?=&.\/-;#@~%+-]+)/ig;
-    element.html(element.html().replace(re,'<a href="$1">$1</a>'));
+    return $(element).map(function (i, elm) {
+        elm = $(elm);
+        if(elm.html() !== null){
+            var re = /((http|https|ftp):\/\/[\w?=&.\/-;#@~%+-]+(?![\w\s?&.\/;#~%"=-]*>))/ig;
+            elm.html(elm.html().replace(re,'<a href="$1" rel="nofollow">$1</a>'));
+            var re = /((magnet):[\w?=&.\/-;#@~%+-]+)/ig;
+            elm.html(elm.html().replace(re,'<a href="$1">$1</a>'));
+        }
+    });
 }
 
 // Some stupid web 2.0 services and redirectors add data AFTER the anchor
@@ -357,11 +362,11 @@ var ReadPage = Backbone.View.extend({
                 .show();
         }
 
-        // decryption and tree building phase
-        var comments_hierarchy = paste;
-        var comments_by_id = {};
-        comments_by_id[pasteid] = comments_hierarchy;
+        // Decryption and tree building phase
         if (paste.meta.opendiscussion) {
+            var comments_hierarchy = paste;
+            var comments_by_id = {};
+            comments_by_id[pasteid] = comments_hierarchy;
             for (var i = 0; i < comments.length; i++) {
                 var comment=comments[i];
                 try {
@@ -369,10 +374,14 @@ var ReadPage = Backbone.View.extend({
                 } catch(err) {
                     comment.data = '[decryption failed - wrong key?]';
                 }
-                try {
-                    comment.meta.nickname = zeroDecipher(key, comment.meta.nickname);
-                } catch(err) {
-                    comment.meta.nickname = '[decryption failed - wrong key?]';
+                if(comment.meta.nickname){
+                    try {
+                        comment.meta.nickname = zeroDecipher(key, comment.meta.nickname);
+                    } catch(err) {
+                        comment.meta.nickname = '[decryption failed - wrong key?]';
+                    }
+                } else {
+                    comment.meta.nickname = 'Anonymous';
                 }
                 if(comments_by_id[comment.meta.parentid]){
                     comments_by_id[comment.meta.parentid].children = comments_by_id[comment.meta.parentid].children || [];
@@ -380,49 +389,20 @@ var ReadPage = Backbone.View.extend({
                     comments_by_id[comment.meta.commentid] = comment;
                 }
             }
-        }
 
-        // If the discussion is opened on this paste, display it.
-        if (paste.meta.opendiscussion) {
-            $('div#comments').html('');
-            // For each comment.
-            for (var i = 0; i < comments.length; i++) {
-                var comment=comments[i];
-                // var cleartext = "[Could not decrypt comment ; Wrong key ?]";
-                var place = $('div#comments');
-                // If parent comment exists, display below (CSS will automatically shift it right.)
-                var cname = 'div#comment_'+comment.meta.parentid;
-
-                // If the element exists in page
-                if ($(cname).length) {
-                    place = $(cname);
-                }
-
-                var divComment = $('<blockquote><div class="comment" id="comment_' + comment.meta.commentid+'">'+
-                                   '<div class="commentmeta"><strong class="nickname"></strong><span class="commentdate"></span></div><div class="commentdata"></div>'+
-                                   '<button class="btn" onclick="open_reply($(this),\'' + comment.meta.commentid + '\');return false;">Reply</button>'+
-                                   '</div></blockquote>');
-                setElementText(divComment.find('div.commentdata'), comment.data);
-                // Convert URLs to clickable links in comment.
-                urls2links(divComment.find('div.commentdata'));
-                divComment.find('strong.nickname').html('<i>(Anonymous)</i>');
-
-                // Try to get optional nickname:
-                try {
-                    divComment.find('strong.nickname').text(comment.meta.nickname);
-                } catch(err) { }
-                divComment.find('span.commentdate').text(' - '+(new Date(comment.meta.postdate*1000).toUTCString())+' ').attr('title','CommentID: ' + comment.meta.commentid);
-
-                // If an avatar is available, display it.
-                if (comment.meta.vizhash) {
-                    divComment.find('strong.nickname').before('<img src="' + comment.meta.vizhash + '" class="vizhash" title="Anonymous avatar (Vizhash of the IP address)" />');
-                }
-
-                place.append(divComment);
-            }
+            // Display the discussion.
+            var comment_tpl = _.template($('#comment-tpl').html());
+            var html = '';
+            _.each(comments_hierarchy.children, function(ele, i, list) {
+                html += comment_tpl({comment: ele, template: comment_tpl});
+            });
+            $('#comments').html(html);
+            // Convert URLs to clickable links in comment.
+            urls2links($('#comments').find('div.commentdata'));
             $('div#comments').append('<div class="comment"><button class="btn" onclick="open_reply($(this),\'' + pasteid + '\');return false;">Add comment</button></div>');
             $('div#discussion').show();
         }
+
     },
     render: function(){
         this.$el.html(this.template({

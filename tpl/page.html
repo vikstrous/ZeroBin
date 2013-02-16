@@ -98,6 +98,25 @@
       {{! } }}
     </script>
 
+    <script type="text/template" id="comment-tpl">
+    <blockquote>
+      <div class="comment" id="comment_{{comment.meta.commentid}}">
+        <div class="commentmeta">
+          {{! if (comment.meta.vizhash) { }}
+          <img src="{{comment.meta.vizhash}}" class="vizhash" title="Anonymous avatar (Vizhash of the IP address)" />
+          {{! } }}
+          <strong class="nickname">{{comment.meta.nickname}}</strong>
+          <span class="commentdate" title="CommentID: {{comment.meta.commentid}}">- {{! print(new Date(comment.meta.postdate*1000).toUTCString()); }}</span>
+        </div>
+        <div class="commentdata">{{comment.data}}</div>
+        <button class="btn" onclick="open_reply($(this),'{{comment.meta.commentid}}');return false;">Reply</button>
+      </div>
+      {{! _.each(comment.children, function(ele, index, list) {
+        print(template({comment: ele, template: template}));
+      }); }}
+    </blockquote>
+    </script>
+
     <script type="text/template" id="send-page-tpl">
       <div class="row">
         <div id="message" class="span9">
@@ -185,7 +204,7 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="js/lib/jquery.js#"></script>
-    <script src="js/lib/underscore-min.js#"></script>
+    <script src="js/lib/underscore.js#"></script>
     <script src="js/lib/backbone-min.js#"></script>
 
     <script src="js/lib/bootstrap.min.js#"></script>
