@@ -439,11 +439,7 @@ function getParams() {
     return {'paste': paste, 'key': cleanKey(key)};
 }
 
-$(function() {
-    // hide "no javascript" message
-    $('#noscript').addClass('hidden');
 
-});
 
 var ReadPage = Backbone.View.extend({
     id: 'read-page',
@@ -487,7 +483,6 @@ var ReadPage = Backbone.View.extend({
     }
 });
 
-var readPage = new ReadPage();
 
 var SendPage = Backbone.View.extend({
     id: 'send-page',
@@ -517,7 +512,6 @@ var SendPage = Backbone.View.extend({
     }
 });
 
-var sendPage = new SendPage();
 
 var ZerobinRouter = Backbone.Router.extend({
 
@@ -543,5 +537,12 @@ var ZerobinRouter = Backbone.Router.extend({
         }
     }
 });
-var zerobinRouter = new ZerobinRouter();
-Backbone.history.start();
+
+var readPage, sendPage, zerobinRouter;
+
+$(function() {
+    readPage = new ReadPage();
+    sendPage = new SendPage();
+    zerobinRouter = new ZerobinRouter();
+    Backbone.history.start();
+});

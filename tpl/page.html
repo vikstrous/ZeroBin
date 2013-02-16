@@ -44,7 +44,11 @@
       </div>
     </div>
 
-    <noscript><div class="nonworking">Javascript is required for ZeroBin to work.<br>Sorry for the inconvenience.</div></noscript>
+    <noscript id='noscript'><div>Javascript is required for ZeroBin to work.<br>Sorry for the inconvenience.</div></noscript>
+    <script>
+    // hide "no javascript" message
+    document.getElementById('noscript').style.display = 'none';
+    </script>
 
     <div class="container">
       <div class="row">
@@ -172,7 +176,7 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="js/lib/jquery.js#"></script>
-    <script src="js/lib/underscore.js#"></script>
+    <script src="js/lib/underscore-min.js#"></script>
     <script src="js/lib/backbone-min.js#"></script>
 
     <script src="js/lib/bootstrap.min.js#"></script>
