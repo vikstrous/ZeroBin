@@ -318,15 +318,13 @@ var ReadPage = Backbone.View.extend({
         var pasteid = globalState.get('pasteid');
         var key = globalState.get('key');
         var comments = globalState.get('messages').toJSON(),
-            paste = comments[0],
-            attachment = paste.attachment,
-            cleartext = paste.data;
+            paste = comments[0];
         comments = _.rest(comments);
         if(!globalState.get('preview')) {
             try { // Try to decrypt the paste.
-                cleartext = zeroDecipher(key, cleartext);
-                if(attachment) {
-                    attachment = zeroDecipher(key, attachment);
+                paste.data = zeroDecipher(key, paste.data);
+                if(paste.attachment) {
+                    paste.attachment = zeroDecipher(key, attachment);
                 }
             } catch(err) {
                 $('#cleartext').hide();
@@ -335,15 +333,15 @@ var ReadPage = Backbone.View.extend({
             }
         }
 
-        if(attachment) {
+        if(paste.attachment) {
             $('#attachment').show();
             $('#attachment a').click(function(){
-                window.open(attachment, '_blank');
+                window.open(paste.attachment, '_blank');
                 window.focus();
             });
         }
 
-        setElementText($('pre#cleartext'), cleartext);
+        setElementText($('pre#cleartext'), paste.data);
         urls2links($('pre#cleartext')); // Convert URLs to clickable links.
         $('pre#cleartext').snippet(paste.meta.language, {style:"ide-codewarrior"});
         // Display paste expiration.
@@ -359,16 +357,38 @@ var ReadPage = Backbone.View.extend({
                 .show();
         }
 
+        // decryption and tree building phase
+        var comments_hierarchy = paste;
+        var comments_by_id = {};
+        comments_by_id[pasteid] = comments_hierarchy;
+        if (paste.meta.opendiscussion) {
+            for (var i = 0; i < comments.length; i++) {
+                var comment=comments[i];
+                try {
+                    comment.data = zeroDecipher(key, comment.data);
+                } catch(err) {
+                    comment.data = '[decryption failed - wrong key?]';
+                }
+                try {
+                    comment.meta.nickname = zeroDecipher(key, comment.meta.nickname);
+                } catch(err) {
+                    comment.meta.nickname = '[decryption failed - wrong key?]';
+                }
+                if(comments_by_id[comment.meta.parentid]){
+                    comments_by_id[comment.meta.parentid].children = comments_by_id[comment.meta.parentid].children || [];
+                    comments_by_id[comment.meta.parentid].children.push(comment);
+                    comments_by_id[comment.meta.commentid] = comment;
+                }
+            }
+        }
+
         // If the discussion is opened on this paste, display it.
         if (paste.meta.opendiscussion) {
             $('div#comments').html('');
             // For each comment.
             for (var i = 0; i < comments.length; i++) {
                 var comment=comments[i];
-                cleartext = "[Could not decrypt comment ; Wrong key ?]";
-                try {
-                    cleartext = zeroDecipher(key, comment.data);
-                } catch(err) { }
+                // var cleartext = "[Could not decrypt comment ; Wrong key ?]";
                 var place = $('div#comments');
                 // If parent comment exists, display below (CSS will automatically shift it right.)
                 var cname = 'div#comment_'+comment.meta.parentid;
@@ -382,14 +402,14 @@ var ReadPage = Backbone.View.extend({
                                    '<div class="commentmeta"><strong class="nickname"></strong><span class="commentdate"></span></div><div class="commentdata"></div>'+
                                    '<button class="btn" onclick="open_reply($(this),\'' + comment.meta.commentid + '\');return false;">Reply</button>'+
                                    '</div></blockquote>');
-                setElementText(divComment.find('div.commentdata'), cleartext);
+                setElementText(divComment.find('div.commentdata'), comment.data);
                 // Convert URLs to clickable links in comment.
                 urls2links(divComment.find('div.commentdata'));
                 divComment.find('strong.nickname').html('<i>(Anonymous)</i>');
 
                 // Try to get optional nickname:
                 try {
-                    divComment.find('strong.nickname').text(zeroDecipher(key, comment.meta.nickname));
+                    divComment.find('strong.nickname').text(comment.meta.nickname);
                 } catch(err) { }
                 divComment.find('span.commentdate').text(' - '+(new Date(comment.meta.postdate*1000).toUTCString())+' ').attr('title','CommentID: ' + comment.meta.commentid);
 
