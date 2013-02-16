@@ -118,91 +118,6 @@ function remove_attachment() {
     $('#file-wrap').show();
 }
 
-/**
- * Show decrypted text in the display area, including discussion (if open)
- *
- * @param string key : decryption key
- * @param array comments : Array of messages to display (items = array with keys ('data','meta')
- */
-function displayMessages(key, comments) {
-    var attachment;
-    try { // Try to decrypt the paste.
-        var cleartext = zeroDecipher(key, comments[0].data);
-        if(comments[0].attachment) {
-            attachment = zeroDecipher(key, comments[0].attachment);
-        }
-    } catch(err) {
-        $('pre#cleartext').hide();
-        showError('Could not decrypt data (Wrong key ?)');
-        return;
-    }
-
-    if(attachment) {
-        $('div#attachment').show();
-        $('div#attachment a').attr('href', attachment);
-    }
-
-    setElementText($('pre#cleartext'), cleartext);
-    urls2links($('pre#cleartext')); // Convert URLs to clickable links.
-    $('pre#cleartext').snippet(comments[0].meta.language, {style:"ide-codewarrior"});
-    // Display paste expiration.
-    if (comments[0].meta.expire_date) {
-        $('div#remainingtime')
-            .html('<i class="icon-time"></i> This document will expire in '+secondsToHuman(comments[0].meta.remaining_time)+'.')
-            .show();
-    }
-    if (comments[0].meta.burnafterreading) {
-        $('div#remainingtime')
-            .addClass('alert-error')
-            .html('<i class="icon-fire"></i> <strong>FOR YOUR EYES ONLY.</strong> Don\'t close this window, this message will self destruct.')
-            .show();
-    }
-
-    // If the discussion is opened on this paste, display it.
-    if (comments[0].meta.opendiscussion) {
-        $('div#comments').html('');
-        // For each comment.
-        for (var i = 1; i < comments.length; i++) {
-            var comment=comments[i];
-            var cleartext="[Could not decrypt comment ; Wrong key ?]";
-            try {
-                cleartext = zeroDecipher(key, comment.data);
-            } catch(err) { }
-            var place = $('div#comments');
-            // If parent comment exists, display below (CSS will automatically shift it right.)
-            var cname = 'div#comment_'+comment.meta.parentid
-
-            // If the element exists in page
-            if ($(cname).length) {
-                place = $(cname);
-            }
-
-            var divComment = $('<blockquote><div class="comment" id="comment_' + comment.meta.commentid+'">'
-                               + '<div class="commentmeta"><strong class="nickname"></strong><span class="commentdate"></span></div><div class="commentdata"></div>'
-                               + '<button class="btn" onclick="open_reply($(this),\'' + comment.meta.commentid + '\');return false;">Reply</button>'
-                               + '</div></blockquote>');
-            setElementText(divComment.find('div.commentdata'), cleartext);
-            // Convert URLs to clickable links in comment.
-            urls2links(divComment.find('div.commentdata'));
-            divComment.find('strong.nickname').html('<i>(Anonymous)</i>');
-
-            // Try to get optional nickname:
-            try {
-                divComment.find('strong.nickname').text(zeroDecipher(key, comment.meta.nickname));
-            } catch(err) { }
-            divComment.find('span.commentdate').text(' - '+(new Date(comment.meta.postdate*1000).toUTCString())+' ').attr('title','CommentID: ' + comment.meta.commentid);
-
-            // If an avatar is available, display it.
-            if (comment.meta.vizhash) {
-                divComment.find('strong.nickname').before('<img src="' + comment.meta.vizhash + '" class="vizhash" title="Anonymous avatar (Vizhash of the IP address)" />');
-            }
-
-            place.append(divComment);
-        }
-        $('div#comments').append('<div class="comment"><button class="btn" onclick="open_reply($(this),\'' + pasteID() + '\');return false;">Add comment</button></div>');
-        $('div#discussion').show();
-    }
-}
 
 /**
  * Open the comment entry when clicking the "Reply" button of a comment.
@@ -412,6 +327,92 @@ function upload_paste(cipherdata, cipherdata_attachment, expire, language, opend
 var ReadPage = Backbone.View.extend({
     id: 'read-page',
     template: _.template($('#read-page-tpl').html()),
+
+    /**
+     * Show decrypted text in the display area, including discussion (if open)
+     *
+     * @param string key : decryption key
+     * @param array comments : Array of messages to display (items = array with keys ('data','meta')
+     */
+    displayMessages: function (key, comments) {
+        var attachment;
+        try { // Try to decrypt the paste.
+            var cleartext = zeroDecipher(key, comments[0].data);
+            if(comments[0].attachment) {
+                attachment = zeroDecipher(key, comments[0].attachment);
+            }
+        } catch(err) {
+            $('pre#cleartext').hide();
+            showError('Could not decrypt data (Wrong key ?)');
+            return;
+        }
+
+        if(attachment) {
+            $('div#attachment').show();
+            $('div#attachment a').attr('href', attachment);
+        }
+
+        setElementText($('pre#cleartext'), cleartext);
+        urls2links($('pre#cleartext')); // Convert URLs to clickable links.
+        $('pre#cleartext').snippet(comments[0].meta.language, {style:"ide-codewarrior"});
+        // Display paste expiration.
+        if (comments[0].meta.expire_date) {
+            $('div#remainingtime')
+                .html('<i class="icon-time"></i> This document will expire in '+secondsToHuman(comments[0].meta.remaining_time)+'.')
+                .show();
+        }
+        if (comments[0].meta.burnafterreading) {
+            $('div#remainingtime')
+                .addClass('alert-error')
+                .html('<i class="icon-fire"></i> <strong>FOR YOUR EYES ONLY.</strong> Don\'t close this window, this message will self destruct.')
+                .show();
+        }
+
+        // If the discussion is opened on this paste, display it.
+        if (comments[0].meta.opendiscussion) {
+            $('div#comments').html('');
+            // For each comment.
+            for (var i = 1; i < comments.length; i++) {
+                var comment=comments[i];
+                var cleartext="[Could not decrypt comment ; Wrong key ?]";
+                try {
+                    cleartext = zeroDecipher(key, comment.data);
+                } catch(err) { }
+                var place = $('div#comments');
+                // If parent comment exists, display below (CSS will automatically shift it right.)
+                var cname = 'div#comment_'+comment.meta.parentid
+
+                // If the element exists in page
+                if ($(cname).length) {
+                    place = $(cname);
+                }
+
+                var divComment = $('<blockquote><div class="comment" id="comment_' + comment.meta.commentid+'">'
+                                   + '<div class="commentmeta"><strong class="nickname"></strong><span class="commentdate"></span></div><div class="commentdata"></div>'
+                                   + '<button class="btn" onclick="open_reply($(this),\'' + comment.meta.commentid + '\');return false;">Reply</button>'
+                                   + '</div></blockquote>');
+                setElementText(divComment.find('div.commentdata'), cleartext);
+                // Convert URLs to clickable links in comment.
+                urls2links(divComment.find('div.commentdata'));
+                divComment.find('strong.nickname').html('<i>(Anonymous)</i>');
+
+                // Try to get optional nickname:
+                try {
+                    divComment.find('strong.nickname').text(zeroDecipher(key, comment.meta.nickname));
+                } catch(err) { }
+                divComment.find('span.commentdate').text(' - '+(new Date(comment.meta.postdate*1000).toUTCString())+' ').attr('title','CommentID: ' + comment.meta.commentid);
+
+                // If an avatar is available, display it.
+                if (comment.meta.vizhash) {
+                    divComment.find('strong.nickname').before('<img src="' + comment.meta.vizhash + '" class="vizhash" title="Anonymous avatar (Vizhash of the IP address)" />');
+                }
+
+                place.append(divComment);
+            }
+            $('div#comments').append('<div class="comment"><button class="btn" onclick="open_reply($(this),\'' + pasteID() + '\');return false;">Add comment</button></div>');
+            $('div#discussion').show();
+        }
+    },
     render: function(paste, key, preview){
         this.$el.html(this.template({pastelink: preview ? scriptLocation() + "#read!" + paste + '!' + key : false}));
         $('#app').empty();
@@ -434,7 +435,7 @@ var ReadPage = Backbone.View.extend({
                 showError('Failed to fetch paste.');
                 return;
             })
-            .success(function(messages){
+            .success(_.bind(function(messages){
                 try{
                     messages = jQuery.parseJSON(messages);
                 } catch(e) {
@@ -444,9 +445,9 @@ var ReadPage = Backbone.View.extend({
                 if(messages.error){
                     showError(messages.error);
                 } else {
-                    displayMessages(key, messages);
+                    this.displayMessages(key, messages);
                 }
-            });
+            }, this));
 
     }
 });
@@ -474,28 +475,32 @@ var SendPage = Backbone.View.extend({
      *  Send a new paste to server
      */
     send_data: function() {
+        var cipherdata, reader, randomkey, files, expiration, language, opendiscussion;
         // Do not send if no data.
-        var files = $('#file')[0].files; // FileList object
+        files = $('#file')[0].files; // FileList object
         if ($('textarea#messageValue').val().length === 0 && !(files && files[0])) {
             return;
         }
 
         showStatus('Sending paste...', spin=true);
 
-        var randomkey = sjcl.codec.base64.fromBits(sjcl.random.randomWords(8, 0), 0);
+        expiration = $('select#pasteExpiration').val();
+        language = $('select#language').val();
+        opendiscussion = $('input#opendiscussion').is(':checked') ? 1 : 0;
+        randomkey = sjcl.codec.base64.fromBits(sjcl.random.randomWords(8, 0), 0);
+        cipherdata = zeroCipher(randomkey, $('textarea#messageValue').val());
 
-        var cipherdata = zeroCipher(randomkey, $('textarea#messageValue').val());
         if(files && files[0]){
-            var reader = new FileReader();
+            reader = new FileReader();
             // Closure to capture the file information.
             reader.onload = (function(theFile) {
                 return function(e) {
                     upload_paste(
                         cipherdata,
                         zeroCipher(randomkey, e.target.result),
-                        $('select#pasteExpiration').val(),
-                        $('select#language').val(),
-                        $('input#opendiscussion').is(':checked') ? 1 : 0,
+                        expiration,
+                        language,
+                        opendiscussion,
                         randomkey
                     );
                 };
@@ -509,10 +514,10 @@ var SendPage = Backbone.View.extend({
         else {
             upload_paste(
                 cipherdata,
-                null,
-                $('select#pasteExpiration').val(),
-                $('select#language').val(),
-                $('input#opendiscussion').is(':checked') ? 1 : 0,
+                undefined,
+                expiration,
+                language,
+                opendiscussion,
                 randomkey
             );
         }
