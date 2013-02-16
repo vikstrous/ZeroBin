@@ -399,7 +399,6 @@ var ReadPage = Backbone.View.extend({
             $('#comments').html(html);
             // Convert URLs to clickable links in comment.
             urls2links($('#comments').find('div.commentdata'));
-            $('div#comments').append('<div class="comment"><button class="btn" onclick="open_reply($(this),\'' + pasteid + '\');return false;">Add comment</button></div>');
             $('div#discussion').show();
         }
 
@@ -408,7 +407,8 @@ var ReadPage = Backbone.View.extend({
         this.$el.html(this.template({
             preview: globalState.get('preview'),
             opendiscussion: globalState.get('messages').at(0).get('meta').opendiscussion,
-            pastelink: scriptLocation() + "read!" + globalState.get('pasteid') + '!' + globalState.get('key')
+            pastelink: scriptLocation() + "read!" + globalState.get('pasteid') + '!' + globalState.get('key'),
+            pasteid: globalState.get('pasteid')
         }));
         $('#app').empty();
         this.$el.appendTo('#app');

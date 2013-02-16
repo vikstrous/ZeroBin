@@ -92,7 +92,9 @@
         <div class="span12">
           <hr />
           <h3>Comments</h3>
-          <div id="comments"></div>
+          <div id="comments">
+          </div>
+          <div class="comment"><button class="btn" onclick="open_reply($(this),'{{pasteid}}');return false;">Add comment</button></div>
         </div>
       </div>
       {{! } }}
@@ -111,9 +113,14 @@
         <div class="commentdata">{{comment.data}}</div>
         <button class="btn" onclick="open_reply($(this),'{{comment.meta.commentid}}');return false;">Reply</button>
       </div>
-      {{! _.each(comment.children, function(ele, index, list) {
-        print(template({comment: ele, template: template}));
-      }); }}
+      {{!
+      var i,len;
+      if(comment.children){
+        for(len=comment.children.length, i=len-1; i>=0; i--) {
+          print(template({comment: comment.children[i], template: template}));
+        }
+      }
+      }}
     </blockquote>
     </script>
 
