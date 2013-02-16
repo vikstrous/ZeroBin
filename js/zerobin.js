@@ -443,23 +443,15 @@ $(function() {
     // hide "no javascript" message
     $('#noscript').addClass('hidden');
 
-    $('select#pasteExpiration').change(function() {
-        if ($(this).val() == 'burn') {
-            $('div#opendisc').addClass('buttondisabled');
-            $('input#opendiscussion').attr('disabled',true);
-        }
-        else {
-            $('div#opendisc').removeClass('buttondisabled');
-            $('input#opendiscussion').removeAttr('disabled');
-        }
-    });
 });
 
 var ReadPage = Backbone.View.extend({
+    id: 'read-page',
     template: _.template($('#read-page-tpl').html()),
     render: function(paste, key, preview){
-        $('#send-page').hide();
-        $('#read-page').html(this.template()).show();
+        this.$el.html(this.template());
+        $('#app').empty();
+        this.$el.appendTo('#app');
         if (preview) {
             var url = scriptLocation() + "#read!" + paste + '!' + key;
             $('#pastelink').html('Paste url: <a href="' + url + '">' + url + '</a>').show();
@@ -468,6 +460,7 @@ var ReadPage = Backbone.View.extend({
         } else {
             $('#pastelink').hide();
         }
+        this.delegateEvents();
 
         // Missing decryption key in URL ?
         if (key.length === 0) {
@@ -502,13 +495,30 @@ var ReadPage = Backbone.View.extend({
 var readPage = new ReadPage();
 
 var SendPage = Backbone.View.extend({
+    id: 'send-page',
     template: _.template($('#send-page-tpl').html()),
+    events: {
+        'change #pasteExpiration': 'changePasteExpiration'
+    },
+    changePasteExpiration: function(e) {
+        if ($(e.target).val() == 'burn') {
+            $('div#opendisc').addClass('buttondisabled');
+            $('input#opendiscussion').attr('disabled',true);
+            $('input#opendiscussion').attr('checked',false);
+        }
+        else {
+            $('div#opendisc').removeClass('buttondisabled');
+            $('input#opendiscussion').removeAttr('disabled');
+        }
+    },
     render: function() {
-        $('#read-page').hide();
         $('#messageValue').val('');
         $('#messageValue').focus();
         showStatus('');
-        $('#send-page').html(this.template()).show();
+        this.$el.html(this.template());
+        $('#app').empty();
+        this.$el.appendTo('#app');
+        this.delegateEvents();
     }
 });
 
