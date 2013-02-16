@@ -297,32 +297,28 @@ function getParams() {
 }
 
 
-function upload_paste(cipherdata, cipherdata_attachment, expire, language, opendiscussion, key) {
+var Message = Backbone.Model.extend({
+  defaults: {
+    data: '',
+    meta: {
+        language: 'none',
+        postdate: 0
+    }
+  }
+});
 
-    var data_to_send = { data:           cipherdata,
-                         attachment:     cipherdata_attachment,
-                         expire:         expire,
-                         language:       language,
-                         opendiscussion: opendiscussion
-                       };
-    $.post(scriptLocation(), data_to_send, 'json')
-    .error(function() {
-        showError('Data could not be sent (server error or not responding).');
-    })
-    .success(function(data) {
-        if (data.status === 0) {
-            zerobinRouter.navigate('preview!' + data.id + '!' + key, {trigger: true});
-        }
-        else if (data.status==1) {
-            showError('Could not create paste - '+data.message);
-        }
-        else {
-            showError('Could not create paste.');
-        }
-    });
-}
+var Messages = Backbone.Collection.extend({
+  model: Message
+});
 
-
+var GlobalState = Backbone.Model.extend({
+  defaults: {
+    preview: false,
+    key: '',
+    attachment: false,
+    messages: new Messages()
+  }
+});
 
 var ReadPage = Backbone.View.extend({
     id: 'read-page',
@@ -334,22 +330,26 @@ var ReadPage = Backbone.View.extend({
      * @param string key : decryption key
      * @param array comments : Array of messages to display (items = array with keys ('data','meta')
      */
-    displayMessages: function (key, comments) {
-        var attachment;
-        try { // Try to decrypt the paste.
-            var cleartext = zeroDecipher(key, comments[0].data);
-            if(comments[0].attachment) {
-                attachment = zeroDecipher(key, comments[0].attachment);
+    displayMessages: function () {
+        var key = globalState.get('key');
+        var comments = globalState.get('messages').toJSON();
+        var attachment = comments[0].attachment, cleartext = comments[0].data;
+        if(!globalState.get('preview')) {
+            try { // Try to decrypt the paste.
+                cleartext = zeroDecipher(key, cleartext);
+                if(attachment) {
+                    attachment = zeroDecipher(key, attachment);
+                }
+            } catch(err) {
+                $('#cleartext').hide();
+                showError('Could not decrypt data (Wrong key ?)');
+                return;
             }
-        } catch(err) {
-            $('pre#cleartext').hide();
-            showError('Could not decrypt data (Wrong key ?)');
-            return;
         }
 
         if(attachment) {
-            $('div#attachment').show();
-            $('div#attachment a').attr('href', attachment);
+            $('#attachment').show();
+            $('#attachment a').attr('href', attachment);
         }
 
         setElementText($('pre#cleartext'), cleartext);
@@ -413,47 +413,21 @@ var ReadPage = Backbone.View.extend({
             $('div#discussion').show();
         }
     },
-    render: function(paste, key, preview){
-        this.$el.html(this.template({pastelink: preview ? scriptLocation() + "#read!" + paste + '!' + key : false}));
+    render: function(paste, key){
+        this.$el.html(this.template({pastelink: globalState.get('preview') ? scriptLocation() + "read!" + paste + '!' + key : false}));
         $('#app').empty();
         this.$el.appendTo('#app');
-        if (preview) {
+        this.delegateEvents();
+        if (globalState.get('preview')) {
             showStatus('');
         }
-        this.delegateEvents();
 
-        // Missing decryption key in URL ?
-        if (key.length === 0) {
-            showError('Error: Cannot decrypt paste - Decryption key missing in URL.');
-            return;
-        }
-        key = cleanKey(key);
-
-
-        $.get('?'+paste)
-            .error(function() {
-                showError('Failed to fetch paste.');
-                return;
-            })
-            .success(_.bind(function(messages){
-                try{
-                    messages = jQuery.parseJSON(messages);
-                } catch(e) {
-                    showError('Cound not parse response from server');
-                    return;
-                }
-                if(messages.error){
-                    showError(messages.error);
-                } else {
-                    this.displayMessages(key, messages);
-                }
-            }, this));
-
+        this.displayMessages();
     }
 });
 
 
-var SendPage = Backbone.View.extend({
+var NewPage = Backbone.View.extend({
     id: 'send-page',
     template: _.template($('#send-page-tpl').html()),
     events: {
@@ -468,6 +442,31 @@ var SendPage = Backbone.View.extend({
             this.$('#opendiscussion').attr('disabled', false);
         }
     },
+
+    upload_paste: function (cipherdata, cipherdata_attachment, expire, language, opendiscussion, key) {
+        var data_to_send = { data:           cipherdata,
+                             attachment:     cipherdata_attachment,
+                             expire:         expire,
+                             language:       language,
+                             opendiscussion: opendiscussion
+                           };
+        $.post(scriptLocation(), data_to_send, 'json')
+        .error(function() {
+            showError('Data could not be sent (server error or not responding).');
+        })
+        .success(function(data) {
+            if (data.status === 0) {
+                controller.preview(data.id, key);
+            }
+            else if (data.status==1) {
+                showError('Could not create paste - '+data.message);
+            }
+            else {
+                showError('Could not create paste.');
+            }
+        });
+    },
+
     /**
      *  Send a new paste to server
      */
@@ -488,10 +487,19 @@ var SendPage = Backbone.View.extend({
         randomkey = sjcl.codec.base64.fromBits(sjcl.random.randomWords(8, 0), 0);
         cipherdata = zeroCipher(randomkey, plaintext);
 
+        globalState.get('messages').reset([{
+            data: plaintext,
+            meta: {
+                language: language,
+                postdate: +new Date()
+            }
+        }]);
+
         if(files && files[0]){
             reader = new FileReader();
-            reader.onload = function(e) {
-                upload_paste(
+            reader.onload = _.bind(function(e) {
+                globalState.get('messages').at(0).set('attachment', e.target.result);
+                this.upload_paste(
                     cipherdata,
                     zeroCipher(randomkey, e.target.result),
                     expiration,
@@ -499,7 +507,7 @@ var SendPage = Backbone.View.extend({
                     opendiscussion,
                     randomkey
                 );
-            };
+            }, this);
             reader.readAsDataURL(files[0]);
         }
         // Clone case:
@@ -507,7 +515,7 @@ var SendPage = Backbone.View.extend({
             the_rest(cipherdata, zeroCipher(randomkey, $('div#attachment a').attr('href')));
         }*/
         else {
-            upload_paste(
+            this.upload_paste(
                 cipherdata,
                 undefined,
                 expiration,
@@ -529,37 +537,78 @@ var SendPage = Backbone.View.extend({
     }
 });
 
+var controller = {
+    read: function(paste, key){
+        // Missing decryption key in URL ?
+        if (key.length === 0) {
+            showError('Error: Cannot decrypt paste - Decryption key missing in URL.');
+            return;
+        }
+        key = cleanKey(key);
+
+        $.get('?'+paste)
+        .error(function() {
+            showError('Failed to fetch paste.');
+            return;
+        })
+        .success(_.bind(function(msgs){
+            try{
+                msgs = jQuery.parseJSON(msgs);
+            } catch(e) {
+                showError('Cound not parse response from server');
+                return;
+            }
+            if(msgs.error){
+                showError(msgs.error);
+            } else {
+                globalState.set('key', key);
+                globalState.set('preview', false);
+                globalState.get('messages').reset(msgs);
+                readPage.render(paste, key);
+            }
+        }, this));
+
+        zerobinRouter.navigate('read!' + paste + '!' + key);
+    },
+    preview: function(paste, key){
+        globalState.set('preview', true);
+        readPage.render(paste, key);
+    },
+    new_paste: function(){
+        newPage.render();
+        zerobinRouter.navigate('');
+    }
+};
+
 
 var ZerobinRouter = Backbone.Router.extend({
 
     routes: {
-        "":                             "new_paste",
-        "*action!*paste!*key":          "read_paste"
+        "":                          "new_paste",
+        "read!*paste!*key":          "read_paste"
     },
 
     new_paste: function() {
-        sendPage.render();
+        controller.new_paste();
     },
 
-    // TODO: make preview a separate route that doesn't require a re-download of the data
-
     // Display an existing paste
-    read_paste: function(action, paste, key) {
-        if (paste.length !== 0 && action.length !== 0) {
+    read_paste: function(paste, key) {
+        if (paste.length !== 0) {
             // Show proper elements on screen.
-            if(action == 'read')
-                readPage.render(paste, key);
-            else if (action == 'preview')
-                readPage.render(paste, key, true);
+            controller.read(paste, key);
+        } else {
+            controller.new_paste();
         }
     }
 });
 
-var readPage, sendPage, zerobinRouter;
+var readPage, newPage, zerobinRouter;
 
 $(function() {
+    globalState = new GlobalState();
     readPage = new ReadPage();
-    sendPage = new SendPage();
+    newPage = new NewPage();
     zerobinRouter = new ZerobinRouter();
     Backbone.history.start();
 });
