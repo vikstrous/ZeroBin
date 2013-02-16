@@ -363,7 +363,7 @@ var ReadPage = Backbone.View.extend({
         if (paste.meta.opendiscussion) {
             $('div#comments').html('');
             // For each comment.
-            for (var i = 1; i < comments.length; i++) {
+            for (var i = 0; i < comments.length; i++) {
                 var comment=comments[i];
                 cleartext = "[Could not decrypt comment ; Wrong key ?]";
                 try {
