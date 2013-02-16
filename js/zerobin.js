@@ -462,49 +462,44 @@ var SendPage = Backbone.View.extend({
     },
     changePasteExpiration: function(e) {
         if ($(e.target).val() == 'burn') {
-            $('div#opendisc').addClass('buttondisabled');
-            $('input#opendiscussion').attr('disabled',true);
-            $('input#opendiscussion').attr('checked',false);
+            this.$('#opendiscussion').attr('disabled', true).attr('checked', false);
         }
         else {
-            $('div#opendisc').removeClass('buttondisabled');
-            $('input#opendiscussion').removeAttr('disabled');
+            this.$('#opendiscussion').attr('disabled', false);
         }
     },
     /**
      *  Send a new paste to server
      */
     send_data: function() {
-        var cipherdata, reader, randomkey, files, expiration, language, opendiscussion;
+        var cipherdata, reader, randomkey, files, expiration, language, opendiscussion, plaintext;
         // Do not send if no data.
-        files = $('#file')[0].files; // FileList object
-        if ($('textarea#messageValue').val().length === 0 && !(files && files[0])) {
+        files = this.$('#file')[0].files; // FileList object
+        plaintext = this.$('#messageValue').val();
+        if (plaintext.length === 0 && !(files && files[0])) {
             return;
         }
 
         showStatus('Sending paste...', spin=true);
 
-        expiration = $('select#pasteExpiration').val();
-        language = $('select#language').val();
-        opendiscussion = $('input#opendiscussion').is(':checked') ? 1 : 0;
+        expiration = this.$('#pasteExpiration').val();
+        language = this.$('#language').val();
+        opendiscussion = this.$('#opendiscussion').is(':checked') ? 1 : 0;
         randomkey = sjcl.codec.base64.fromBits(sjcl.random.randomWords(8, 0), 0);
-        cipherdata = zeroCipher(randomkey, $('textarea#messageValue').val());
+        cipherdata = zeroCipher(randomkey, plaintext);
 
         if(files && files[0]){
             reader = new FileReader();
-            // Closure to capture the file information.
-            reader.onload = (function(theFile) {
-                return function(e) {
-                    upload_paste(
-                        cipherdata,
-                        zeroCipher(randomkey, e.target.result),
-                        expiration,
-                        language,
-                        opendiscussion,
-                        randomkey
-                    );
-                };
-            })(files[0]);
+            reader.onload = function(e) {
+                upload_paste(
+                    cipherdata,
+                    zeroCipher(randomkey, e.target.result),
+                    expiration,
+                    language,
+                    opendiscussion,
+                    randomkey
+                );
+            };
             reader.readAsDataURL(files[0]);
         }
         // Clone case:
@@ -525,13 +520,12 @@ var SendPage = Backbone.View.extend({
     },
 
     render: function() {
-        $('#messageValue').val('');
-        $('#messageValue').focus();
         showStatus('');
         this.$el.html(this.template());
         $('#app').empty();
         this.$el.appendTo('#app');
         this.delegateEvents();
+        this.$('#messageValue').focus();
     }
 });
 
