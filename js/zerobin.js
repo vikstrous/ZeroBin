@@ -382,6 +382,32 @@ function getParams() {
 }
 
 
+function upload_paste(cipherdata, cipherdata_attachment, expire, language, opendiscussion, key) {
+
+    var data_to_send = { data:           cipherdata,
+                         attachment:     cipherdata_attachment,
+                         expire:         expire,
+                         language:       language,
+                         opendiscussion: opendiscussion
+                       };
+    $.post(scriptLocation(), data_to_send, 'json')
+    .error(function() {
+        showError('Data could not be sent (server error or not responding).');
+    })
+    .success(function(data) {
+        if (data.status === 0) {
+            zerobinRouter.navigate('preview!' + data.id + '!' + key, {trigger: true});
+        }
+        else if (data.status==1) {
+            showError('Could not create paste - '+data.message);
+        }
+        else {
+            showError('Could not create paste.');
+        }
+    });
+}
+
+
 
 var ReadPage = Backbone.View.extend({
     id: 'read-page',
@@ -449,7 +475,7 @@ var SendPage = Backbone.View.extend({
      */
     send_data: function() {
         // Do not send if no data.
-        var files = document.getElementById('file').files; // FileList object
+        var files = $('#file')[0].files; // FileList object
         if ($('textarea#messageValue').val().length === 0 && !(files && files[0])) {
             return;
         }
@@ -458,49 +484,39 @@ var SendPage = Backbone.View.extend({
 
         var randomkey = sjcl.codec.base64.fromBits(sjcl.random.randomWords(8, 0), 0);
 
-        var cipherdata_attachment;
+        var cipherdata = zeroCipher(randomkey, $('textarea#messageValue').val());
         if(files && files[0]){
-          var reader = new FileReader();
-          // Closure to capture the file information.
-          reader.onload = (function(theFile) {
-            return function(e) {
-              cipherdata_attachment = zeroCipher(randomkey, e.target.result);
-              the_rest();
-            };
-          })(files[0]);
-          reader.readAsDataURL(files[0]);
-        } else if($('div#attachment a').attr('href')) {
-            cipherdata_attachment = zeroCipher(randomkey, $('div#attachment a').attr('href'));
-            the_rest();
-        } else {
-            the_rest();
+            var reader = new FileReader();
+            // Closure to capture the file information.
+            reader.onload = (function(theFile) {
+                return function(e) {
+                    upload_paste(
+                        cipherdata,
+                        zeroCipher(randomkey, e.target.result),
+                        $('select#pasteExpiration').val(),
+                        $('select#language').val(),
+                        $('input#opendiscussion').is(':checked') ? 1 : 0,
+                        randomkey
+                    );
+                };
+            })(files[0]);
+            reader.readAsDataURL(files[0]);
+        }
+        // Clone case:
+        /* else if($('div#attachment a').attr('href')) {
+            the_rest(cipherdata, zeroCipher(randomkey, $('div#attachment a').attr('href')));
+        }*/
+        else {
+            upload_paste(
+                cipherdata,
+                null,
+                $('select#pasteExpiration').val(),
+                $('select#language').val(),
+                $('input#opendiscussion').is(':checked') ? 1 : 0,
+                randomkey
+            );
         }
 
-        function the_rest() {
-
-            var cipherdata = zeroCipher(randomkey, $('textarea#messageValue').val());
-            var data_to_send = { data:           cipherdata,
-                                 attachment:     cipherdata_attachment,
-                                 expire:         $('select#pasteExpiration').val(),
-                                 language:       $('select#language').val(),
-                                 opendiscussion: $('input#opendiscussion').is(':checked') ? 1 : 0
-                               };
-            $.post(scriptLocation(), data_to_send, 'json')
-                .error(function() {
-                    showError('Data could not be sent (server error or not responding).');
-                })
-                .success(function(data) {
-                    if (data.status === 0) {
-                        zerobinRouter.navigate('preview!' + data.id + '!' + randomkey, {trigger: true});
-                    }
-                    else if (data.status==1) {
-                        showError('Could not create paste - '+data.message);
-                    }
-                    else {
-                        showError('Could not create paste.');
-                    }
-                });
-            }
     },
 
     render: function() {
