@@ -582,7 +582,7 @@ var controller = {
         globalState.set('key', key);
         globalState.set('preview', true);
         readPage.render();
-        zerobinRouter.navigate('preview');
+        zerobinRouter.navigate('read!' + paste + '!' + key);
     },
     new_paste: function(){
         newPage.render();
@@ -595,7 +595,6 @@ var ZerobinRouter = Backbone.Router.extend({
 
     routes: {
         "":                          "new_paste",
-        "preview":                   "new_paste",
         "read!*paste!*key":          "read_paste"
     },
 
