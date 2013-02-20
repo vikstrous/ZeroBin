@@ -9,8 +9,11 @@ class RainTPLTest extends PHPUnit_Framework_TestCase
 
     private $_content;
 
+    private $tmp_existed;
+
     public function setUp()
     {
+        $this->tmp_existed = is_dir(PATH.'tmp');
         /* Setup Routine */
         $page = new RainTPL;
         $page::configure(array('cache_dir' => 'tmp/'));
@@ -31,37 +34,12 @@ class RainTPLTest extends PHPUnit_Framework_TestCase
     public function tearDown()
     {
         /* Tear Down Routine */
-        helper::rmdir(PATH . 'tmp');
+        if(!$this->tmp_existed)
+            helper::rmdir(PATH . 'tmp');
     }
 
     public function testTemplateRendersCorrectly()
     {
-        $this->assertTag(
-            array(
-                'id' => 'cipherdata',
-                'content' => htmlspecialchars(self::$data, ENT_NOQUOTES)
-            ),
-            $this->_content,
-            'outputs data correctly'
-        );
-        $this->assertTag(
-            array(
-                'id' => 'errormessage',
-                'content' => self::$error
-            ),
-            $this->_content,
-            'outputs error correctly'
-        );
-        $this->assertTag(
-            array(
-                'id' => 'opendiscussion',
-                'attributes' => array(
-                    'disabled' => 'disabled'
-                ),
-            ),
-            $this->_content,
-            'disables discussions if configured'
-        );
         // testing version number in JS address, since other instances may not be present in different templates
         $this->assertTag(
             array(

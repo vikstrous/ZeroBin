@@ -10,7 +10,7 @@ class vizhash16x16Test extends PHPUnit_Framework_TestCase
     public function setUp()
     {
         /* Setup Routine */
-        $this->_path = PATH . 'data' . DIRECTORY_SEPARATOR;
+        $this->_path = PATH . 'tmp' . DIRECTORY_SEPARATOR;
         $this->_dataDirCreated = !is_dir($this->_path);
         if($this->_dataDirCreated) mkdir($this->_path);
         $this->_file = $this->_path . 'vizhash.png';
@@ -32,6 +32,7 @@ class vizhash16x16Test extends PHPUnit_Framework_TestCase
     {
         $vz = new vizhash16x16();
         $pngdata = $vz->generate('127.0.0.1');
+        $this->assertEquals(function_exists('gd_info'), true);
         file_put_contents($this->_file, $pngdata);
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $this->assertEquals('image/png', $finfo->file($this->_file));
