@@ -161,24 +161,9 @@ var util = {
 
 };
 
-// /**
-//  * Clone the current paste.
-//  */
-// function clonePaste() {
-//     stateNewPaste();
-//     util.showStatus('');
-//     if($('#attachment a').attr('href')){
-//         $('#cloned-file').removeClass('hidden');
-//         $('#file-wrap').addClass('hidden');
-//     }
-//     $('textarea#message').text($('#cleartext').text());
-// }
-
-
-
 var Message = Backbone.Model.extend({
   defaults: {
-    data: '',
+    data: '', // in view mode: the base64 encoded and encrypted contents of the message; in preview mode: the plaintext
     meta: {
         language: 'none',
         postdate: 0
@@ -194,7 +179,7 @@ var GlobalState = Backbone.Model.extend({
   defaults: {
     preview: false,
     key: '',
-    attachment: false,
+    clone_attachment: false,
     messages: new Messages()
   }
 });
@@ -204,7 +189,20 @@ var ReadPage = Backbone.View.extend({
     template: _.template($('#read-page-tpl').html()),
     events: {
         'click .paste-url': 'paste_click',
-        'click .reply-btn': 'open_reply'
+        'click .reply-btn': 'open_reply',
+        'click #newbutton': 'new_btn',
+        'click #clonebutton': 'clone_btn'
+    },
+
+    new_btn: function(e){
+        controller.new_paste();
+    },
+
+    /**
+     * Clone the current paste.
+     */
+    clone_btn: function(e){
+        controller.clone_paste();
     },
 
     /**
@@ -278,6 +276,7 @@ var ReadPage = Backbone.View.extend({
         if(!globalState.get('preview')) {
             try { // Try to decrypt the paste.
                 paste.data = util.zeroDecipher(key, paste.data);
+                globalState.get('messages').at(0).set('data', paste.data); // store the plaintext so that we can clone without decrypting again
                 if(paste.attachment) {
                     paste.attachment = util.zeroDecipher(key, paste.attachment);
                 }
@@ -362,12 +361,11 @@ var ReadPage = Backbone.View.extend({
         }));
         $('#app').empty();
         this.$el.appendTo('#app');
-        this.delegateEvents();
         if (globalState.get('preview')) {
             util.showStatus(false);
         }
-
         this.displayMessages();
+        this.delegateEvents();
     }
 });
 
@@ -384,8 +382,7 @@ var NewPage = Backbone.View.extend({
      * Remove the current attachment (either copied from another paste and in the file selector)
      */
     removeAttachment: function() {
-        // TODO: bring this back when cloning is back
-        // $('#cloned-file').hide();
+        $('#cloned-file').hide();
         $('#file-wrap').show();
     },
 
@@ -465,11 +462,9 @@ var NewPage = Backbone.View.extend({
             }, this);
             reader.readAsDataURL(files[0]);
         }
-        // Clone case:
-        // TODO: in case of cloning get it from the state object. It doesn't exist here any more.
-        /* else if($('div#attachment a').attr('href')) {
-            the_rest(cipherdata, zeroCipher(randomkey, $('div#attachment a').attr('href')));
-        }*/
+        else if(globalState.get('clone_attachment')) {
+            the_rest(cipherdata, zeroCipher(randomkey, globalState.get('messages').at(0).get('attachment')));
+        }
         else {
             this.uploadPaste(
                 cipherdata,
@@ -484,7 +479,7 @@ var NewPage = Backbone.View.extend({
     },
 
     render: function() {
-        util.showStatus('');
+        util.showStatus(false);
         this.$el.html(this.template());
         $('#app').empty();
         this.$el.appendTo('#app');
@@ -527,6 +522,25 @@ var controller = {
 
         zerobinRouter.navigate('read!' + paste + '!' + key);
     },
+    clone_paste: function(){
+        var paste = globalState.get('pasteid');
+        var key = globalState.get('key');
+        var data = globalState.get('messages').at(0).get('data');
+        var has_attachment = !!globalState.get('messages').at(0).get('attachment');
+        globalState.set('clone_attachment', true);
+        newPage.render();
+
+        if (has_attachment) {
+            $('#cloned-file-wrap').show().find('a').click(function(){
+                globalState.set('clone_attachment', false);
+                $('#cloned-file-wrap').hide();
+                $('#file-wrap').show();
+            });
+            $('#file-wrap').hide();
+        }
+        $('#messageValue').val(data);
+        zerobinRouter.navigate('');
+    },
     preview: function(paste, key){
         globalState.set('pasteid', paste);
         globalState.set('key', key);
@@ -555,7 +569,6 @@ var ZerobinRouter = Backbone.Router.extend({
     // Display an existing paste
     read_paste: function(paste, key) {
         if (paste.length !== 0) {
-            // Show proper elements on screen.
             controller.read(paste, key);
         } else {
             controller.new_paste();
@@ -563,7 +576,7 @@ var ZerobinRouter = Backbone.Router.extend({
     }
 });
 
-var readPage, newPage, zerobinRouter;
+var readPage, newPage, zerobinRouter, globalState;
 
 $(function() {
     globalState = new GlobalState();
