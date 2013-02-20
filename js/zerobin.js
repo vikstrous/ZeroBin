@@ -124,7 +124,40 @@ var util = {
                 elm.html(elm.html().replace(re,'<a href="$1">$1</a>'));
             }
         });
+    },
+
+    /**
+     * Display an error message
+     * (We use the same function for paste and reply to comments)
+     * //TODO: do we really want to display the status message in two places when there's a comment being posted?
+     */
+    showError: function (message) {
+        $('div#status').addClass('alert-error').text(message).show();
+        $('div#replystatus').addClass('alert-error').text(message).show();
+    },
+
+    /**
+     * Display status
+     * (We use the same function for paste and reply to comments)
+     *
+     * @param string message : text to display
+     * @param boolean spin (optional) : tell if the "spinning" animation should be displayed.
+     */
+    showStatus: function (message, spin) {
+        $('div#replystatus').removeClass('alert-error').text(message).show();
+        $('div#status').removeClass('alert-error').text(message).show();
+        if (!message) {
+            $('div#status').html('').hide();
+            $('div#replystatus').html('').hide();
+            return;
+        }
+        if (spin) {
+            var img = '<img src="img/busy.gif" style="width:16px;height:9px;margin:0px 4px 0px 0px;" />';
+            $('div#status').prepend(img);
+            $('div#replystatus').prepend(img);
+        }
     }
+
 
 };
 
@@ -133,7 +166,7 @@ var util = {
 //  */
 // function clonePaste() {
 //     stateNewPaste();
-//     showStatus('');
+//     util.showStatus('');
 //     if($('#attachment a').attr('href')){
 //         $('#cloned-file').removeClass('hidden');
 //         $('#file-wrap').addClass('hidden');
@@ -141,45 +174,7 @@ var util = {
 //     $('textarea#message').text($('#cleartext').text());
 // }
 
-/**
- * Display an error message
- * (We use the same function for paste and reply to comments)
- */
-function showError(message) {
-    $('div#status').addClass('alert-error').text(message);
-    $('div#replystatus').addClass('alert-error').text(message);
-    $('div#status').show();
-    $('div#replystatus').show();
-}
 
-/**
- * Display status
- * (We use the same function for paste and reply to comments)
- *
- * @param string message : text to display
- * @param boolean spin (optional) : tell if the "spinning" animation should be displayed.
- */
-function showStatus(message, spin) {
-    $('div#replystatus').removeClass('alert-error');
-    $('div#replystatus').text(message);
-    $('div#status').removeClass('alert-error');
-    $('div#status').text(message);
-    if (!message || message == '') {
-        $('div#status').html('&nbsp');
-        $('div#status').hide();
-        $('div#replystatus').html('&nbsp');
-        $('div#replystatus').hide();
-        return;
-    }
-
-    $('div#status').show();
-
-    if (spin) {
-        var img = '<img src="img/busy.gif" style="width:16px;height:9px;margin:0px 4px 0px 0px;" />';
-        $('div#status').prepend(img);
-        $('div#replystatus').prepend(img);
-    }
-}
 
 var Message = Backbone.Model.extend({
   defaults: {
@@ -230,7 +225,7 @@ var ReadPage = Backbone.View.extend({
                 return;
             }
 
-            showStatus('Sending comment...', spin=true);
+            util.showStatus('Sending comment...', true);
             var cipherdata = util.zeroCipher(globalState.get('key'), $('textarea#replymessage').val());
             var ciphernickname = '';
             var nick=$('input#nickname').val();
@@ -245,18 +240,18 @@ var ReadPage = Backbone.View.extend({
 
             $.post(util.scriptLocation(), data_to_send, 'json')
             .error(function() {
-                showError('Error: Comment could not be sent.');
+                util.showError('Error: Comment could not be sent.');
             })
             .success(function(data) {
                 if (data.status == 0) {
-                    showStatus('Comment posted.');
+                    util.showStatus('Comment posted.');
                     location.reload();
                 }
                 else if (data.status==1) {
-                    showError('Error: Could not post comment: '+data.message);
+                    util.showError('Error: Could not post comment: '+data.message);
                 }
                 else {
-                    showError('Error: Could not post comment.');
+                    util.showError('Error: Could not post comment.');
                 }
             });
             e.preventDefault();
@@ -288,7 +283,7 @@ var ReadPage = Backbone.View.extend({
                 }
             } catch(err) {
                 $('#cleartext').hide();
-                showError('Could not decrypt data (Wrong key ?)');
+                util.showError('Could not decrypt data (Wrong key ?)');
                 return;
             }
         }
@@ -369,7 +364,7 @@ var ReadPage = Backbone.View.extend({
         this.$el.appendTo('#app');
         this.delegateEvents();
         if (globalState.get('preview')) {
-            showStatus('');
+            util.showStatus(false);
         }
 
         this.displayMessages();
@@ -412,17 +407,17 @@ var NewPage = Backbone.View.extend({
                            };
         $.post(util.scriptLocation(), data_to_send, 'json')
         .error(function() {
-            showError('Data could not be sent (server error or not responding).');
+            util.showError('Data could not be sent (server error or not responding).');
         })
         .success(function(data) {
             if (data.status === 0) {
                 controller.preview(data.id, key);
             }
             else if (data.status==1) {
-                showError('Could not create paste - '+data.message);
+                util.showError('Could not create paste - '+data.message);
             }
             else {
-                showError('Could not create paste.');
+                util.showError('Could not create paste.');
             }
         });
     },
@@ -439,7 +434,7 @@ var NewPage = Backbone.View.extend({
             return;
         }
 
-        showStatus('Sending paste...', spin=true);
+        util.showStatus('Sending paste...', true);
 
         expiration = this.$('#pasteExpiration').val();
         language = this.$('#language').val();
@@ -489,7 +484,7 @@ var NewPage = Backbone.View.extend({
     },
 
     render: function() {
-        showStatus('');
+        util.showStatus('');
         this.$el.html(this.template());
         $('#app').empty();
         this.$el.appendTo('#app');
@@ -502,25 +497,25 @@ var controller = {
     read: function(paste, key){
         // Missing decryption key in URL ?
         if (key.length === 0) {
-            showError('Error: Cannot decrypt paste - Decryption key missing in URL.');
+            util.showError('Error: Cannot decrypt paste - Decryption key missing in URL.');
             return;
         }
         key = util.cleanKey(key);
 
         $.get('?'+paste)
         .error(function() {
-            showError('Failed to fetch paste.');
+            util.showError('Failed to fetch paste.');
             return;
         })
         .success(_.bind(function(msgs){
             try{
                 msgs = jQuery.parseJSON(msgs);
             } catch(e) {
-                showError('Cound not parse response from server');
+                util.showError('Cound not parse response from server');
                 return;
             }
             if(msgs.error){
-                showError(msgs.error);
+                util.showError(msgs.error);
             } else {
                 globalState.set('pasteid', paste);
                 globalState.set('key', key);
