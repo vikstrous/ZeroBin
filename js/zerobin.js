@@ -84,51 +84,26 @@ var util = {
         else {
             element.text(text);
         }
+    },
+
+    // Some stupid web 2.0 services and redirectors add data AFTER the anchor
+    // (such as &utm_source=...).
+    // We will strip any additional data.
+    cleanKey: function (key) {
+        // First, strip everything after the equal sign (=) which signals end of base64 string.
+        i = key.indexOf('='); if (i>-1) { key = key.substring(0,i+1); }
+
+        // If the equal sign was not present, some parameters may remain:
+        i = key.indexOf('&'); if (i>-1) { key = key.substring(0,i); }
+
+        // Then add trailing equal sign if it's missing
+        if (key.charAt(key.length-1)!=='=') key+='=';
+
+        return key;
     }
 
 };
 
-
-
-
-/**
- * Open the comment entry when clicking the "Reply" button of a comment.
- * @param object source : element which emitted the event.
- * @param string commentid = identifier of the comment we want to reply to.
- */
-function open_reply(source, commentid) {
-    $('div.reply').remove(); // Remove any other reply area.
-    source.after('<div class="row">'
-                + '<div class="span8 offset2">'
-                + '<div class="reply">'
-                + '<div id="replystatus" class="alert" style="display:none;">&nbsp;</div>'
-                + '<form class="form-horizontal well"><fieldset>'
-                + '<div class="control-group">'
-                + '<label class="control-label" for="nickname">Optional Name</label>'
-                + '<div class="controls">'
-                + '<input type="text" class="input-xlarge" id="nickname" name="nickname"/>'
-                + '</div>'
-                + '</div>'
-                + '<div class="control-group">'
-                + '<label class="control-label" for="replymessage">Comment</label>'
-                + '<div class="controls">'
-                + '<textarea id="replymessage" class="replymessage input-xlarge" rows="7"></textarea>'
-                + '</div>'
-                + '</div>'
-                + '<div class="control-group">'
-                + '<div class="controls">'
-                + '<button class="btn btn-primary" id="replybutton" onclick="send_comment(\'' + commentid + '\');return false;">Post comment</button>'
-                + '</div>'
-                + '</div>'
-                + '</div>'
-                + '</fieldset></form></div></div>');
-    $('input#nickname').focus(function() {
-        if ($(this).val() == $(this).attr('title')) {
-            $(this).val('');
-        }
-    });
-    $('textarea#replymessage').focus();
-}
 
 /**
  * Send a reply in a discussion.
@@ -250,22 +225,6 @@ function urls2links(element) {
     });
 }
 
-// Some stupid web 2.0 services and redirectors add data AFTER the anchor
-// (such as &utm_source=...).
-// We will strip any additional data.
-function cleanKey(key) {
-    // First, strip everything after the equal sign (=) which signals end of base64 string.
-    i = key.indexOf('='); if (i>-1) { key = key.substring(0,i+1); }
-
-    // If the equal sign was not present, some parameters may remain:
-    i = key.indexOf('&'); if (i>-1) { key = key.substring(0,i); }
-
-    // Then add trailing equal sign if it's missing
-    if (key.charAt(key.length-1)!=='=') key+='=';
-
-    return key;
-}
-
 var Message = Backbone.Model.extend({
   defaults: {
     data: '',
@@ -293,7 +252,23 @@ var ReadPage = Backbone.View.extend({
     id: 'read-page',
     template: _.template($('#read-page-tpl').html()),
     events: {
-        'click .paste-url': 'paste_click'
+        'click .paste-url': 'paste_click',
+        'click .reply-btn': 'open_reply'
+    },
+
+    /**
+     * Open the comment entry when clicking the "Reply" button of a comment.
+     * @param object source : element which emitted the event.
+     * @param string commentid = identifier of the comment we want to reply to.
+     */
+    open_reply: function (e) {
+        var source = $(e.target);
+        var commentid = source.attr('commentid');
+        $('div.reply').remove(); // Remove any other reply area.
+        var reply_box_tpl = _.template($('#reply-box-tpl').html());
+        var html = reply_box_tpl({commentid: commentid});
+        source.after(html);
+        $('#replymessage').focus();
     },
 
     paste_click: function(){
@@ -537,7 +512,7 @@ var controller = {
             showError('Error: Cannot decrypt paste - Decryption key missing in URL.');
             return;
         }
-        key = cleanKey(key);
+        key = util.cleanKey(key);
 
         $.get('?'+paste)
         .error(function() {

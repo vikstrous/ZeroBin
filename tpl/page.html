@@ -94,10 +94,41 @@
           <h3>Comments</h3>
           <div id="comments">
           </div>
-          <div class="comment"><button class="btn" onclick="open_reply($(this),'{{pasteid}}');return false;">Add comment</button></div>
+          <div class="comment"><button class="btn reply-btn" commentid="{{pasteid}}">Add comment</button></div>
         </div>
       </div>
       {{! } }}
+    </script>
+
+    <script type="text/template" id="reply-box-tpl">
+    <div class="reply">
+      <div class="row">
+        <div class="span8 offset2">
+          <div id="replystatus" class="alert" style="display:none;">&nbsp;</div>
+          <form class="form-horizontal well">
+            <fieldset>
+              <div class="control-group">
+                <label class="control-label" for="nickname">Name</label>
+                <div class="controls">
+                  <input type="text" class="input-xlarge" id="nickname" name="nickname" placeholder="Anonymous"/>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="replymessage">Comment</label>
+                <div class="controls">
+                  <textarea id="replymessage" class="replymessage input-xlarge" rows="7"></textarea>
+                </div>
+              </div>
+              <div class="control-group">
+                <div class="controls">
+                  <button class="btn btn-primary" id="replybutton" onclick="send_comment('{{commentid}}');return false;">Post comment</button>
+                </div>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+      </div>
+    </div>
     </script>
 
     <script type="text/template" id="comment-tpl">
@@ -111,7 +142,7 @@
           <span class="commentdate" title="CommentID: {{comment.meta.commentid}}">- {{! print(new Date(comment.meta.postdate*1000).toUTCString()); }}</span>
         </div>
         <div class="commentdata">{{comment.data}}</div>
-        <button class="btn" onclick="open_reply($(this),'{{comment.meta.commentid}}');return false;">Reply</button>
+        <button class="btn reply-btn" commentid="{{comment.meta.commentid}}">Reply</button>
       </div>
       {{!
       var i,len;
