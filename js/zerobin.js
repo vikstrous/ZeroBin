@@ -100,53 +100,33 @@ var util = {
         if (key.charAt(key.length-1)!=='=') key+='=';
 
         return key;
-    }
+    },
 
-};
-
-
-/**
- * Send a reply in a discussion.
- * @param string parentid : the comment identifier we want to send a reply to.
- */
-function send_comment(parentid) {
-    // Do not send if no data.
-    if ($('#replymessage').val().length===0) {
-        return;
-    }
-
-    showStatus('Sending comment...', spin=true);
-    var cipherdata = util.zeroCipher(globalState.get('key'), $('textarea#replymessage').val());
-    var ciphernickname = '';
-    var nick=$('input#nickname').val();
-    if (nick !== '') {
-        ciphernickname = util.zeroCipher(globalState.get('key'), nick);
-    }
-    var data_to_send = { data:cipherdata,
-                         parentid: parentid,
-                         pasteid:  globalState.get('pasteid'),
-                         nickname: ciphernickname
-                       };
-
-    $.post(util.scriptLocation(), data_to_send, 'json')
-        .error(function() {
-            showError('Error: Comment could not be sent.');
-        })
-        .success(function(data) {
-            if (data.status == 0) {
-                showStatus('Comment posted.');
-                location.reload();
-            }
-            else if (data.status==1) {
-                showError('Error: Could not post comment: '+data.message);
-            }
-            else {
-                showError('Error: Could not post comment.');
+    /**
+     * Convert URLs to clickable links.
+     * URLs to handle:
+     * <code>
+     *     magnet:?xt.1=urn:sha1:YNCKHTQCWBTRNJIV4WNAE52SJUQCZO5C&xt.2=urn:sha1:TXGCZQTH26NL6OUQAJJPFALHG2LTGBC7
+     *     http://localhost:8800/zero/?6f09182b8ea51997#WtLEUO5Epj9UHAV9JFs+6pUQZp13TuspAUjnF+iM+dM=
+     *     http://user:password@localhost:8800/zero/?6f09182b8ea51997#WtLEUO5Epj9UHAV9JFs+6pUQZp13TuspAUjnF+iM+dM=
+     * </code>
+     *
+     * @param object element : a jQuery DOM element.
+     * @FIXME: add ppa & apt links.
+     */
+    urls2links: function (element) {
+        return $(element).map(function (i, elm) {
+            elm = $(elm);
+            if(elm.html() !== null){
+                var re = /((http|https|ftp):\/\/[\w?=&.\/-;#@~%+-]+(?![\w\s?&.\/;#~%"=-]*>))/ig;
+                elm.html(elm.html().replace(re,'<a href="$1" rel="nofollow">$1</a>'));
+                var re = /((magnet):[\w?=&.\/-;#@~%+-]+)/ig;
+                elm.html(elm.html().replace(re,'<a href="$1">$1</a>'));
             }
         });
     }
 
-
+};
 
 // /**
 //  * Clone the current paste.
@@ -158,7 +138,7 @@ function send_comment(parentid) {
 //         $('#cloned-file').removeClass('hidden');
 //         $('#file-wrap').addClass('hidden');
 //     }
-//     $('textarea#message').text($('pre#cleartext').text());
+//     $('textarea#message').text($('#cleartext').text());
 // }
 
 /**
@@ -199,30 +179,6 @@ function showStatus(message, spin) {
         $('div#status').prepend(img);
         $('div#replystatus').prepend(img);
     }
-}
-
-/**
- * Convert URLs to clickable links.
- * URLs to handle:
- * <code>
- *     magnet:?xt.1=urn:sha1:YNCKHTQCWBTRNJIV4WNAE52SJUQCZO5C&xt.2=urn:sha1:TXGCZQTH26NL6OUQAJJPFALHG2LTGBC7
- *     http://localhost:8800/zero/?6f09182b8ea51997#WtLEUO5Epj9UHAV9JFs+6pUQZp13TuspAUjnF+iM+dM=
- *     http://user:password@localhost:8800/zero/?6f09182b8ea51997#WtLEUO5Epj9UHAV9JFs+6pUQZp13TuspAUjnF+iM+dM=
- * </code>
- *
- * @param object element : a jQuery DOM element.
- * @FIXME: add ppa & apt links.
- */
-function urls2links(element) {
-    return $(element).map(function (i, elm) {
-        elm = $(elm);
-        if(elm.html() !== null){
-            var re = /((http|https|ftp):\/\/[\w?=&.\/-;#@~%+-]+(?![\w\s?&.\/;#~%"=-]*>))/ig;
-            elm.html(elm.html().replace(re,'<a href="$1" rel="nofollow">$1</a>'));
-            var re = /((magnet):[\w?=&.\/-;#@~%+-]+)/ig;
-            elm.html(elm.html().replace(re,'<a href="$1">$1</a>'));
-        }
-    });
 }
 
 var Message = Backbone.Model.extend({
@@ -269,7 +225,40 @@ var ReadPage = Backbone.View.extend({
         var html = reply_box_tpl();
         source.after(html);
         $('#replybutton').click(function(e){
-            send_comment(commentid);
+            // Do not send if no data.
+            if ($('#replymessage').val().length===0) {
+                return;
+            }
+
+            showStatus('Sending comment...', spin=true);
+            var cipherdata = util.zeroCipher(globalState.get('key'), $('textarea#replymessage').val());
+            var ciphernickname = '';
+            var nick=$('input#nickname').val();
+            if (nick !== '') {
+                ciphernickname = util.zeroCipher(globalState.get('key'), nick);
+            }
+            var data_to_send = { data:cipherdata,
+                                 parentid: commentid,
+                                 pasteid:  globalState.get('pasteid'),
+                                 nickname: ciphernickname
+                               };
+
+            $.post(util.scriptLocation(), data_to_send, 'json')
+            .error(function() {
+                showError('Error: Comment could not be sent.');
+            })
+            .success(function(data) {
+                if (data.status == 0) {
+                    showStatus('Comment posted.');
+                    location.reload();
+                }
+                else if (data.status==1) {
+                    showError('Error: Could not post comment: '+data.message);
+                }
+                else {
+                    showError('Error: Could not post comment.');
+                }
+            });
             e.preventDefault();
         });
         $('#replymessage').focus();
@@ -312,9 +301,9 @@ var ReadPage = Backbone.View.extend({
             });
         }
 
-        util.setElementText($('pre#cleartext'), paste.data);
-        urls2links($('pre#cleartext')); // Convert URLs to clickable links.
-        $('pre#cleartext').snippet(paste.meta.language, {style:"ide-codewarrior"});
+        util.setElementText($('#cleartext'), paste.data);
+        util.urls2links($('#cleartext')); // Convert URLs to clickable links.
+        $('#cleartext').snippet(paste.meta.language, {style:"ide-codewarrior"});
         // Display paste expiration.
         if (paste.meta.expire_date) {
             $('#remainingtime')
@@ -364,7 +353,7 @@ var ReadPage = Backbone.View.extend({
             });
             $('#comments').html(html);
             // Convert URLs to clickable links in comment.
-            urls2links($('#comments').find('div.commentdata'));
+            util.urls2links($('#comments').find('div.commentdata'));
             $('div#discussion').show();
         }
 
