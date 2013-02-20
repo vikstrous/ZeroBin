@@ -141,7 +141,7 @@
       <div class="comment" id="comment_{{comment.meta.commentid}}">
         <div class="commentmeta">
           {{! if (comment.meta.vizhash) { }}
-          <img src="{{comment.meta.vizhash}}" class="vizhash" title="Anonymous avatar (Vizhash of the IP address)" />
+          <img src="{{comment.meta.vizhash}}#" class="vizhash" title="Anonymous avatar (Vizhash of the IP address)" />
           {{! } }}
           <strong class="nickname">{{comment.meta.nickname}}</strong>
           <span class="commentdate" title="CommentID: {{comment.meta.commentid}}">- {{! print(new Date(comment.meta.postdate*1000).toUTCString()); }}</span>
