@@ -19,95 +19,75 @@ _.templateSettings = {
   escape : /\{\{(?!\{)(?!\!)([\s\S]+?)\}\}/g
 };
 
-/**
- *  Converts a duration (in seconds) into human readable format.
- *
- *  @param int seconds
- *  @return string
- */
-function secondsToHuman(seconds)
-{
-    if (seconds<60) { var v=Math.floor(seconds); return v+' second'+((v>1)?'s':''); }
-    if (seconds<60*60) { var v=Math.floor(seconds/60); return v+' minute'+((v>1)?'s':''); }
-    if (seconds<60*60*24) { var v=Math.floor(seconds/(60*60)); return v+' hour'+((v>1)?'s':''); }
-    // If less than 2 months, display in days:
-    if (seconds<60*60*24*60) { var v=Math.floor(seconds/(60*60*24)); return v+' day'+((v>1)?'s':''); }
-    var v=Math.floor(seconds/(60*60*24*30)); return v+' month'+((v>1)?'s':'');
-}
+var util = {
 
-/**
- * Compress a message (deflate compression). Returns base64 encoded data.
- *
- * @param string message
- * @return base64 string data
- */
-function compress(message) {
-    return Base64.toBase64( RawDeflate.deflate( Base64.utob(message) ) );
-}
+    /**
+     *  Converts a duration (in seconds) into human readable format.
+     *
+     *  @param int seconds
+     *  @return string
+     */
+    secondsToHuman: function (seconds)
+    {
+        if (seconds<60) { var v=Math.floor(seconds); return v+' second'+((v>1)?'s':''); }
+        if (seconds<60*60) { var v=Math.floor(seconds/60); return v+' minute'+((v>1)?'s':''); }
+        if (seconds<60*60*24) { var v=Math.floor(seconds/(60*60)); return v+' hour'+((v>1)?'s':''); }
+        // If less than 2 months, display in days:
+        if (seconds<60*60*24*60) { var v=Math.floor(seconds/(60*60*24)); return v+' day'+((v>1)?'s':''); }
+        var v=Math.floor(seconds/(60*60*24*30)); return v+' month'+((v>1)?'s':'');
+    },
 
-/**
- * Decompress a message compressed with compress().
- */
-function decompress(data) {
-    return Base64.btou( RawDeflate.inflate( Base64.fromBase64(data) ) );
-}
+    /**
+     * Compress, then encrypt message with key.
+     *
+     * @param string key
+     * @param string message
+     * @return encrypted string data
+     */
+    zeroCipher: function (key, message) {
+        return sjcl.encrypt(key, RawDeflate.deflate( Base64.utob(message) ) );
+    },
 
-/**
- * Compress, then encrypt message with key.
- *
- * @param string key
- * @param string message
- * @return encrypted string data
- */
-function zeroCipher(key, message) {
-    return sjcl.encrypt(key,compress(message));
-}
-/**
- *  Decrypt message with key, then decompress.
- *
- *  @param key
- *  @param encrypted string data
- *  @return string readable message
- */
-function zeroDecipher(key, data) {
-    return decompress(sjcl.decrypt(key,data));
-}
+    /**
+     *  Decrypt message with key, then decompress.
+     *
+     *  @param key
+     *  @param encrypted string data
+     *  @return string readable message
+     */
+    zeroDecipher: function (key, data) {
+        return Base64.btou( RawDeflate.inflate( sjcl.decrypt(key, data) ) );
+    },
 
-/**
- * @return the current script location (without search or hash part of the URL).
- *   eg. http://server.com/zero/?aaaa#bbbb --> http://server.com/zero/
- */
-function scriptLocation() {
-    return window.location.href.substring(0,window.location.href.length
-               -window.location.search.length -window.location.hash.length);
-}
-
-/**
- * @return the paste unique identifier from the URL
- *   eg. 'c05354954c49a487'
- */
-function pasteID() {
-    return window.location.search.substring(1);
-}
-
-/**
- * Set text of a DOM element (required for IE)
- * This is equivalent to element.text(text)
- * @param object element : a DOM element.
- * @param string text : the text to enter.
- */
-function setElementText(element, text) {
-    // For IE<10.
-    if ($('div#oldienotice').is(":visible")) {
-        // IE<10 do not support white-space:pre-wrap; so we have to do this BIG UGLY STINKING THING.
-        element.text(text.replace(/\n/ig,'{BIG_UGLY_STINKING_THING__OH_GOD_I_HATE_IE}'));
-        element.html(element.text().replace(/{BIG_UGLY_STINKING_THING__OH_GOD_I_HATE_IE}/ig,"\n<br />"));
+    /**
+     * @return the current script location (without search or hash part of the URL).
+     *   eg. http://server.com/zero/?aaaa#bbbb --> http://server.com/zero/
+     */
+    scriptLocation: function () {
+        return window.location.href.substring(0,window.location.href.length
+                   -window.location.search.length -window.location.hash.length);
+    },
+    /**
+     * Set text of a DOM element (required for IE)
+     * This is equivalent to element.text(text)
+     * @param object element : a DOM element.
+     * @param string text : the text to enter.
+     */
+    setElementText: function (element, text) {
+        // For IE<10.
+        if ($('div#oldienotice').is(":visible")) {
+            // IE<10 do not support white-space:pre-wrap; so we have to do this BIG UGLY STINKING THING.
+            element.text(text.replace(/\n/ig,'{BIG_UGLY_STINKING_THING__OH_GOD_I_HATE_IE}'));
+            element.html(element.text().replace(/{BIG_UGLY_STINKING_THING__OH_GOD_I_HATE_IE}/ig,"\n<br />"));
+        }
+        // for other (sane) browsers:
+        else {
+            element.text(text);
+        }
     }
-    // for other (sane) browsers:
-    else {
-        element.text(text);
-    }
-}
+
+};
+
 
 
 
@@ -161,11 +141,11 @@ function send_comment(parentid) {
     }
 
     showStatus('Sending comment...', spin=true);
-    var cipherdata = zeroCipher(globalState.get('key'), $('textarea#replymessage').val());
+    var cipherdata = util.zeroCipher(globalState.get('key'), $('textarea#replymessage').val());
     var ciphernickname = '';
     var nick=$('input#nickname').val();
     if (nick !== '') {
-        ciphernickname = zeroCipher(globalState.get('key'), nick);
+        ciphernickname = util.zeroCipher(globalState.get('key'), nick);
     }
     var data_to_send = { data:cipherdata,
                          parentid: parentid,
@@ -173,7 +153,7 @@ function send_comment(parentid) {
                          nickname: ciphernickname
                        };
 
-    $.post(scriptLocation(), data_to_send, 'json')
+    $.post(util.scriptLocation(), data_to_send, 'json')
         .error(function() {
             showError('Error: Comment could not be sent.');
         })
@@ -312,6 +292,13 @@ var GlobalState = Backbone.Model.extend({
 var ReadPage = Backbone.View.extend({
     id: 'read-page',
     template: _.template($('#read-page-tpl').html()),
+    events: {
+        'click .paste-url': 'paste_click'
+    },
+
+    paste_click: function(){
+        location.reload();
+    },
 
     /**
      * Show decrypted text in the display area, including discussion (if open)
@@ -327,9 +314,9 @@ var ReadPage = Backbone.View.extend({
         comments = _.rest(comments);
         if(!globalState.get('preview')) {
             try { // Try to decrypt the paste.
-                paste.data = zeroDecipher(key, paste.data);
+                paste.data = util.zeroDecipher(key, paste.data);
                 if(paste.attachment) {
-                    paste.attachment = zeroDecipher(key, attachment);
+                    paste.attachment = util.zeroDecipher(key, paste.attachment);
                 }
             } catch(err) {
                 $('#cleartext').hide();
@@ -346,13 +333,13 @@ var ReadPage = Backbone.View.extend({
             });
         }
 
-        setElementText($('pre#cleartext'), paste.data);
+        util.setElementText($('pre#cleartext'), paste.data);
         urls2links($('pre#cleartext')); // Convert URLs to clickable links.
         $('pre#cleartext').snippet(paste.meta.language, {style:"ide-codewarrior"});
         // Display paste expiration.
         if (paste.meta.expire_date) {
             $('#remainingtime')
-                .html('<i class="icon-time"></i> This document will expire in '+secondsToHuman(paste.meta.remaining_time)+'.')
+                .html('<i class="icon-time"></i> This document will expire in '+util.secondsToHuman(paste.meta.remaining_time)+'.')
                 .show();
         }
         if (paste.meta.burnafterreading) {
@@ -370,13 +357,13 @@ var ReadPage = Backbone.View.extend({
             for (var i = 0; i < comments.length; i++) {
                 var comment=comments[i];
                 try {
-                    comment.data = zeroDecipher(key, comment.data);
+                    comment.data = util.zeroDecipher(key, comment.data);
                 } catch(err) {
                     comment.data = '[decryption failed - wrong key?]';
                 }
                 if(comment.meta.nickname){
                     try {
-                        comment.meta.nickname = zeroDecipher(key, comment.meta.nickname);
+                        comment.meta.nickname = util.zeroDecipher(key, comment.meta.nickname);
                     } catch(err) {
                         comment.meta.nickname = '[decryption failed - wrong key?]';
                     }
@@ -407,7 +394,7 @@ var ReadPage = Backbone.View.extend({
         this.$el.html(this.template({
             preview: globalState.get('preview'),
             opendiscussion: globalState.get('messages').at(0).get('meta').opendiscussion,
-            pastelink: scriptLocation() + "read!" + globalState.get('pasteid') + '!' + globalState.get('key'),
+            pastelink: util.scriptLocation() + "read!" + globalState.get('pasteid') + '!' + globalState.get('key'),
             pasteid: globalState.get('pasteid')
         }));
         $('#app').empty();
@@ -455,7 +442,7 @@ var NewPage = Backbone.View.extend({
                              language:       language,
                              opendiscussion: opendiscussion
                            };
-        $.post(scriptLocation(), data_to_send, 'json')
+        $.post(util.scriptLocation(), data_to_send, 'json')
         .error(function() {
             showError('Data could not be sent (server error or not responding).');
         })
@@ -490,7 +477,7 @@ var NewPage = Backbone.View.extend({
         language = this.$('#language').val();
         opendiscussion = this.$('#opendiscussion').is(':checked') ? 1 : 0;
         randomkey = sjcl.codec.base64.fromBits(sjcl.random.randomWords(8, 0), 0);
-        cipherdata = zeroCipher(randomkey, plaintext);
+        cipherdata = util.zeroCipher(randomkey, plaintext);
 
         globalState.get('messages').reset([{
             data: plaintext,
@@ -506,7 +493,7 @@ var NewPage = Backbone.View.extend({
                 globalState.get('messages').at(0).set('attachment', e.target.result);
                 this.uploadPaste(
                     cipherdata,
-                    zeroCipher(randomkey, e.target.result),
+                    util.zeroCipher(randomkey, e.target.result),
                     expiration,
                     language,
                     opendiscussion,
