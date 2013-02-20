@@ -266,8 +266,12 @@ var ReadPage = Backbone.View.extend({
         var commentid = source.attr('commentid');
         $('div.reply').remove(); // Remove any other reply area.
         var reply_box_tpl = _.template($('#reply-box-tpl').html());
-        var html = reply_box_tpl({commentid: commentid});
+        var html = reply_box_tpl();
         source.after(html);
+        $('#replybutton').click(function(e){
+            send_comment(commentid);
+            e.preventDefault();
+        });
         $('#replymessage').focus();
     },
 
