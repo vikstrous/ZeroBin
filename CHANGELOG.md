@@ -37,7 +37,11 @@
   * **Alpha 0.15 (2012-04-20):**
     * FIXED: 2 minor corrections to avoid notices in php log.
     * FIXED: Sources converted to UTF-8.
-  * **Alpha 0.2 (2012-04-20):**
+  * **Alpha 0.2 (2013-02-08):**
     * CHANGED: The entire backend was restrucured by Simon Rupf
     * CHANGED: The entire frontend was converted to use Bootstrap by Cash Williams
     * ADDED: File upload feature
+  * **Alpha 0.3 (2013-02-20):**
+    * CHANGED: The entire javascript was restructured to use backbone (still lots of room for improvement left...)
+    * CHANGED: Minor UI changes
+    * CHANGED: URL link format

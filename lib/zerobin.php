@@ -7,7 +7,7 @@
  * @link      http://sebsauvage.net/wiki/doku.php?id=php:zerobin
  * @copyright 2012 Sébastien SAUVAGE (sebsauvage.net)
  * @license   http://www.opensource.org/licenses/zlib-license.php The zlib/libpng License
- * @version   0.2
+ * @version   0.3
  */
 
 /**
@@ -20,7 +20,7 @@ class zerobin
     /*
      * @const string version
      */
-    const VERSION = 'Alpha 0.2';
+    const VERSION = 'Alpha 0.3';
 
     /**
      * @access private
@@ -434,7 +434,6 @@ class zerobin
         } else {
             $page = new RainTPL;
             // We escape it here because ENT_NOQUOTES can't be used in RainTPL templates.
-            $page->assign('OPENDISCUSSION', $this->_conf['main']['opendiscussion']);
             $page->assign('VERSION', self::VERSION);
             $page->draw('page');
         }
