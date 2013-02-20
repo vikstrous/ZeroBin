@@ -30,9 +30,9 @@ class vizhash16x16Test extends PHPUnit_Framework_TestCase
 
     public function testVizhashGeneratesUniquePngsPerIp()
     {
+        $this->assertEquals(function_exists('gd_info'), true);
         $vz = new vizhash16x16();
         $pngdata = $vz->generate('127.0.0.1');
-        $this->assertEquals(function_exists('gd_info'), true);
         file_put_contents($this->_file, $pngdata);
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $this->assertEquals('image/png', $finfo->file($this->_file));
