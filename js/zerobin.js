@@ -57,7 +57,11 @@ var util = {
      * @return encrypted string data
      */
     zeroCipher: function(key, message) {
-        return sjcl.encrypt(key, RawDeflate.deflate(Base64.utob(message)));
+        var pass = '';
+        if($("input#password").val()){
+            pass = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash($("input#password").val()));
+        }
+        return sjcl.encrypt(key+pass, RawDeflate.deflate(Base64.utob(message)));
     },
 
     /**
@@ -68,7 +72,13 @@ var util = {
      *  @return string readable message
      */
     zeroDecipher: function(key, data) {
-        return Base64.btou(RawDeflate.inflate(sjcl.decrypt(key, data)));
+        var pass = '';
+        try {
+            return Base64.btou(RawDeflate.inflate(sjcl.decrypt(key+pass, data)));
+        } catch(err){
+            pass = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(prompt("Please enter the password for this paste.","")));
+            return Base64.btou(RawDeflate.inflate(sjcl.decrypt(key+pass, data)));
+        }
     },
 
     /**
@@ -329,6 +339,8 @@ var ReadPage = Backbone.View.extend({
                 }
             } catch(err) {
                 $('#cleartext').hide();
+                $('#clonebutton').hide();
+                $('#discussion').hide();
                 util.showError('Could not decrypt data (Wrong key ?)');
                 return;
             }
