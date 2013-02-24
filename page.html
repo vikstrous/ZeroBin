@@ -156,8 +156,11 @@
     <script type="text/template" id="send-page-tpl">
       <div class="row">
         {{! if (is_extension) { }}
-          <div class="span9">
-            <input id="server" class="span9" type="text" value="http://zerobin.local/">
+          <div class="span1">
+            <label for="server">Server:</label>
+          </div>
+          <div class="span8">
+            <input id="server" class="span8" type="text">
           </div>
         {{! } }}
         <div id="message" class="span9">

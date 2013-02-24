@@ -409,9 +409,10 @@ var NewPage = Backbone.View.extend({
     },
 
     uploadPaste: function (cipherdata, cipherdata_attachment, expire, language, opendiscussion, key) {
-        if($('#server').val()){
+        if($('#server').length && $('#server').val()){
             globalState.set('remote', true);
             globalState.set('server', $('#server').val());
+            localStorage['server'] = $('#server').val();
         }
         var data_to_send = { data:           cipherdata,
                              attachment:     cipherdata_attachment,
@@ -512,6 +513,9 @@ var NewPage = Backbone.View.extend({
         this.$el.appendTo('#app');
         this.delegateEvents();
         this.$('#messageValue').focus();
+        if ($('#server').length) {
+            $('#server').val(localStorage['server'] || 'http://zerobin.local');
+        }
     }
 });
 
