@@ -217,8 +217,6 @@ var ReadPage = Backbone.View.extend({
 
     /**
      * Open the comment entry when clicking the "Reply" button of a comment.
-     * @param object source : element which emitted the event.
-     * @param string commentid = identifier of the comment we want to reply to.
      */
     open_reply: function (e) {
         var source = $(e.target);
