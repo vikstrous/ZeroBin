@@ -7,7 +7,7 @@
  * @link      http://sebsauvage.net/wiki/doku.php?id=php:zerobin
  * @copyright 2012 Sébastien SAUVAGE (sebsauvage.net)
  * @license   http://www.opensource.org/licenses/zlib-license.php The zlib/libpng License
- * @version   0.3
+ * @version   vikstrous fork
  */
 
 /**
@@ -20,7 +20,7 @@ class zerobin
     /*
      * @const string version
      */
-    const VERSION = 'Alpha 0.3';
+    const VERSION = 'vikstrous fork';
 
     /**
      * @access private
