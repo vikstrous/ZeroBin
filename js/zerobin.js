@@ -510,7 +510,6 @@ var NewPage = Backbone.View.extend({
             }, this);
             reader.readAsDataURL(files[0]);
         } else if(globalState.get('clone_attachment')) {
-            console.log(attachment);
             globalState.get('messages').at(0).set('attachment', attachment);
             this.uploadPaste(cipherdata, util.zeroCipher(randomkey, attachment), expiration, language, opendiscussion, randomkey);
         } else {
