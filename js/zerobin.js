@@ -438,13 +438,15 @@ var NewPage = Backbone.View.extend({
     events: {
         'change #pasteExpiration': 'changePasteExpiration',
         'click #sendbutton': 'sendData',
-        'click .fileupload-exists': 'removeAttachment'
+        'click .removeattachment': 'removeAttachment'
     },
+
     /**
      * Remove the current attachment (either copied from another paste and in the file selector)
      */
     removeAttachment: function() {
-        $('#cloned-file').hide();
+        globalState.set('clone_attachment', false);
+        $('#cloned-file-wrap').hide();
         $('#file-wrap').show();
     },
 
@@ -487,6 +489,7 @@ var NewPage = Backbone.View.extend({
      */
     sendData: function() {
         var cipherdata, reader, attachment, randomkey, files, expiration, language, opendiscussion, plaintext;
+        // Pick up the old attachment if we are cloning
         if(globalState.get('clone_attachment')) {
             attachment = globalState.get('messages').at(0).get('attachment');
         }
@@ -538,7 +541,8 @@ var NewPage = Backbone.View.extend({
     render: function() {
         util.showStatus(false);
         this.$el.html(this.template({
-            is_extension: util.is_extension()
+            is_extension: util.is_extension(),
+            clone_attachment: globalState.get('clone_attachment')
         }));
         $('#app').empty();
         this.$el.appendTo('#app');
@@ -596,17 +600,11 @@ var controller = {
         var key = globalState.get('key');
         var data = globalState.get('messages').at(0).get('data');
         var has_attachment = !! globalState.get('messages').at(0).get('attachment');
-        newPage.render();
-
         if(has_attachment) {
             globalState.set('clone_attachment', true);
-            $('#file-wrap').hide();
-            $('#cloned-file-wrap').show().find('a').click(function() {
-                globalState.set('clone_attachment', false);
-                $('#cloned-file-wrap').hide();
-                $('#file-wrap').show();
-            });
         }
+        newPage.render();
+        //copy the decrypted data in
         $('#messageValue').val(data);
         zerobinRouter.navigate('');
     },

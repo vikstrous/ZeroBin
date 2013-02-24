@@ -161,11 +161,11 @@
           {{! if (is_extension) { }}
               <label>Server: <input id="server" type="text"></label>
           {{! } }}
-          <span id="cloned-file-wrap" style="display:none">
+          <span id="cloned-file-wrap" {{! if (!clone_attachment) { }} style="display: none;"{{! } }}>
             Cloned file attached.
-            <a href="#" class="btn">Remove</a>
+            <a href="#" class="btn removeattachment">Remove</a>
           </span>
-          <span id="file-wrap">
+          <span id="file-wrap" {{! if (clone_attachment) { }} style="display: none;"{{! } }}>
             <div class="fileupload fileupload-new" data-provides="fileupload">
               <label>Attachment:
                 <span class="input-append">
@@ -178,7 +178,7 @@
                     <span class="fileupload-exists">Change</span>
                     <input id="file" type="file" name="file" />
                   </span>
-                  <a href="#" class="btn fileupload-exists" data-dismiss="fileupload">Remove</a>
+                  <a href="#" class="btn fileupload-exists removeattachment" data-dismiss="fileupload">Remove</a>
                 </span>
               </label>
             </div>
