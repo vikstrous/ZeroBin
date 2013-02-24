@@ -42,7 +42,6 @@
     * CHANGED: The entire frontend was converted to use Bootstrap by Cash Williams
     * ADDED: File upload feature
     * CHANGED: The entire javascript was restructured to use backbone (still lots of room for improvement left...)
-    * CHANGED: Minor UI changes
     * CHANGED: URL link format
     * ADDED: Additional password feature
     * ADDED: Chrome extension
