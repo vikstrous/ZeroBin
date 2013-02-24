@@ -29,12 +29,12 @@ var util = {
      */
     secondsToHuman: function (seconds)
     {
-        if (seconds<60) { var v=Math.floor(seconds); return v+' second'+((v>1)?'s':''); }
-        if (seconds<60*60) { var v=Math.floor(seconds/60); return v+' minute'+((v>1)?'s':''); }
-        if (seconds<60*60*24) { var v=Math.floor(seconds/(60*60)); return v+' hour'+((v>1)?'s':''); }
-        // If less than 2 months, display in days:
-        if (seconds<60*60*24*60) { var v=Math.floor(seconds/(60*60*24)); return v+' day'+((v>1)?'s':''); }
-        var v=Math.floor(seconds/(60*60*24*30)); return v+' month'+((v>1)?'s':'');
+        var v;
+        if (seconds<60) { v=Math.floor(seconds); return v+' second'+((v>1)?'s':''); }
+        if (seconds<60*60) { v=Math.floor(seconds/60); return v+' minute'+((v>1)?'s':''); }
+        if (seconds<60*60*24) { v=Math.floor(seconds/(60*60)); return v+' hour'+((v>1)?'s':''); }
+        if (seconds<60*60*24*60) { v=Math.floor(seconds/(60*60*24)); return v+' day'+((v>1)?'s':''); }
+        v=Math.floor(seconds/(60*60*24*30)); return v+' month'+((v>1)?'s':'');
     },
 
     /**
@@ -64,8 +64,13 @@ var util = {
      *   eg. http://server.com/zero/?aaaa#bbbb --> http://server.com/zero/
      */
     scriptLocation: function () {
-        return window.location.href.substring(0,window.location.href.length
-                   -window.location.search.length -window.location.hash.length);
+        if(chrome.tabs !== undefined){
+            console.log('in extension');
+            return 'http://zerobin.local/';
+        } else {
+            return window.location.href.substring(0, window.location.href.length -
+                     window.location.search.length - window.location.hash.length);
+        }
     },
     /**
      * Set text of a DOM element (required for IE)
@@ -462,8 +467,8 @@ var NewPage = Backbone.View.extend({
             }, this);
             reader.readAsDataURL(files[0]);
         }
-        else if(globalState.get('clone_attachment')) {
-            the_rest(cipherdata, zeroCipher(randomkey, globalState.get('messages').at(0).get('attachment')));
+        else if(globalState.get('clone_attachment') && globalState.get('messages').at(0).get('attachment')) {
+            the_rest(cipherdata, util.zeroCipher(randomkey, globalState.get('messages').at(0).get('attachment')));
         }
         else {
             this.uploadPaste(
@@ -497,7 +502,7 @@ var controller = {
         }
         key = util.cleanKey(key);
 
-        $.get('?'+paste)
+        $.get(util.scriptLocation()+'?'+paste)
         .error(function() {
             util.showError('Failed to fetch paste.');
             return;

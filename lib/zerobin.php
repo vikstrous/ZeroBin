@@ -432,10 +432,9 @@ class zerobin
                 echo $this->_data;
             }
         } else {
-            $page = new RainTPL;
-            // We escape it here because ENT_NOQUOTES can't be used in RainTPL templates.
-            $page->assign('VERSION', self::VERSION);
-            $page->draw('page');
+            $page = file_get_contents('page.html');
+            $page = str_replace('{$VERSION}', htmlentities(urlencode(self::VERSION)), $page);
+            echo $page;
         }
     }
 

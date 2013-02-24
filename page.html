@@ -8,17 +8,17 @@
     <meta name="author" content="">
 
     <!-- Le styles -->
-    <link href="css/bootstrap.min.css#" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
     <style>
       body {
         padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
       }
     </style>
-    <link href="css/bootstrap-responsive.min.css#" rel="stylesheet">
-    <link rel="stylesheet" href="css/bootstrap-fileupload.min.css#">
+    <link href="css/bootstrap-responsive.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap-fileupload.min.css">
 
-    <link href="css/jquery.snippet.min.css#" rel="stylesheet">
-    <link href="css/zerobin.css?{$VERSION|rawurlencode}#" rel="stylesheet">
+    <link href="css/jquery.snippet.min.css" rel="stylesheet">
+    <link href="css/zerobin.css?{$VERSION}" rel="stylesheet">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -43,12 +43,6 @@
         </div>
       </div>
     </div>
-
-    <noscript id='noscript'><div>Javascript is required for ZeroBin to work.<br>Sorry for the inconvenience.</div></noscript>
-    <script>
-    // hide "no javascript" message
-    document.getElementById('noscript').style.display = 'none';
-    </script>
 
     <div class="container">
       <div class="row">
@@ -141,7 +135,7 @@
       <div class="comment" id="comment_{{comment.meta.commentid}}">
         <div class="commentmeta">
           {{! if (comment.meta.vizhash) { }}
-          <img src="{{comment.meta.vizhash}}#" class="vizhash" title="Anonymous avatar (Vizhash of the IP address)" />
+          <img src="{{comment.meta.vizhash}}" class="vizhash" title="Anonymous avatar (Vizhash of the IP address)" />
           {{! } }}
           <strong class="nickname">{{comment.meta.nickname}}</strong>
           <span class="commentdate" title="CommentID: {{comment.meta.commentid}}">- {{! print(new Date(comment.meta.postdate*1000).toUTCString()); }}</span>
@@ -248,19 +242,19 @@
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="js/lib/jquery.js#"></script>
-    <script src="js/lib/underscore-min.js#"></script>
-    <script src="js/lib/backbone-min.js#"></script>
+    <script src="js/lib/jquery.js"></script>
+    <script src="js/lib/underscore-min.js"></script>
+    <script src="js/lib/backbone-min.js"></script>
 
-    <script src="js/lib/bootstrap.min.js#"></script>
-    <script src="js/lib/bootstrap-fileupload.min.js#"></script>
+    <script src="js/lib/bootstrap.min.js"></script>
+    <script src="js/lib/bootstrap-fileupload.min.js"></script>
 
-    <script src="js/lib/sjcl.js#"></script>
-    <script src="js/lib/base64.js#"></script>
-    <script src="js/lib/rawdeflate.js#"></script>
-    <script src="js/lib/rawinflate.js#"></script>
-    <script src="js/lib/jquery.snippet.min.js#"></script>
-    <script src="js/lib/sh_diff.min.js#"></script>
-    <script src="js/zerobin.js?{$VERSION|rawurlencode}#"></script>
+    <script src="js/lib/sjcl.js"></script>
+    <script src="js/lib/base64.js"></script>
+    <script src="js/lib/rawdeflate.js"></script>
+    <script src="js/lib/rawinflate.js"></script>
+    <script src="js/lib/jquery.snippet.min.js"></script>
+    <script src="js/lib/sh_diff.min.js"></script>
+    <script src="js/zerobin.js?{$VERSION}"></script>
   </body>
 </html>
