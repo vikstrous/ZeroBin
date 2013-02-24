@@ -39,7 +39,6 @@
       <div class="navbar-inner">
         <div class="container">
           <a class="brand" href="#">ZeroBin</a>
-          <p class="navbar-text pull-right">{$VERSION}</p>
         </div>
       </div>
     </div>
@@ -156,6 +155,11 @@
 
     <script type="text/template" id="send-page-tpl">
       <div class="row">
+        {{! if (is_extension) { }}
+          <div class="span9">
+            <input id="server" class="span9" type="text" value="http://zerobin.local/">
+          </div>
+        {{! } }}
         <div id="message" class="span9">
           <textarea id="messageValue" class="span9" rows="20" name="message"></textarea>
 

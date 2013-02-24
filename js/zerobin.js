@@ -64,11 +64,11 @@ var util = {
      *   eg. http://server.com/zero/?aaaa#bbbb --> http://server.com/zero/
      */
     scriptLocation: function () {
-        if(typeof chrome !== undefined && chrome.tabs !== undefined){
-            return 'http://zerobin.local/';
+        if (globalState.get('remote')) {
+            return globalState.get('server');
         } else {
             return window.location.href.substring(0, window.location.href.length -
-                     window.location.search.length - window.location.hash.length);
+                     window.location.search.length - window.location.hash.length - 1);
         }
     },
     /**
@@ -160,8 +160,12 @@ var util = {
             $('div#status').prepend(img);
             $('div#replystatus').prepend(img);
         }
-    }
+    },
 
+    //if we are not running as a chrome extension, hide the host input
+    is_extension: function(){
+        return typeof chrome !== undefined && chrome.tabs !== undefined;
+    }
 
 };
 
@@ -181,6 +185,8 @@ var Messages = Backbone.Collection.extend({
 
 var GlobalState = Backbone.Model.extend({
   defaults: {
+    remote: false,
+    server: '',
     preview: false,
     key: '',
     clone_attachment: false,
@@ -280,9 +286,12 @@ var ReadPage = Backbone.View.extend({
         if(!globalState.get('preview')) {
             try { // Try to decrypt the paste.
                 paste.data = util.zeroDecipher(key, paste.data);
-                globalState.get('messages').at(0).set('data', paste.data); // store the plaintext so that we can clone without decrypting again
+                // store the plaintext so that we can clone without decrypting again
+                globalState.get('messages').at(0).set('data', paste.data);
                 if(paste.attachment) {
                     paste.attachment = util.zeroDecipher(key, paste.attachment);
+                    // store the plaintext so that we can clone without special cases
+                    globalState.get('messages').at(0).set('attachment', paste.attachment);
                 }
             } catch(err) {
                 $('#cleartext').hide();
@@ -360,7 +369,7 @@ var ReadPage = Backbone.View.extend({
         this.$el.html(this.template({
             preview: globalState.get('preview'),
             opendiscussion: globalState.get('messages').at(0).get('meta').opendiscussion,
-            pastelink: util.scriptLocation() + "read!" + globalState.get('pasteid') + '!' + globalState.get('key'),
+            pastelink: util.scriptLocation() + "#read!" + globalState.get('pasteid') + '!' + globalState.get('key'),
             pasteid: globalState.get('pasteid')
         }));
         $('#app').empty();
@@ -400,6 +409,10 @@ var NewPage = Backbone.View.extend({
     },
 
     uploadPaste: function (cipherdata, cipherdata_attachment, expire, language, opendiscussion, key) {
+        if($('#server').val()){
+            globalState.set('remote', true);
+            globalState.set('server', $('#server').val());
+        }
         var data_to_send = { data:           cipherdata,
                              attachment:     cipherdata_attachment,
                              expire:         expire,
@@ -427,11 +440,14 @@ var NewPage = Backbone.View.extend({
      *  Send a new paste to server
      */
     sendData: function() {
-        var cipherdata, reader, randomkey, files, expiration, language, opendiscussion, plaintext;
+        var cipherdata, reader, attachment, randomkey, files, expiration, language, opendiscussion, plaintext;
+        if (globalState.get('clone_attachment')) {
+            attachment = globalState.get('messages').at(0).get('attachment');
+        }
         // Do not send if no data.
         files = this.$('#file')[0].files; // FileList object
         plaintext = this.$('#messageValue').val();
-        if (plaintext.length === 0 && !(files && files[0])) {
+        if (plaintext.length === 0 && !(files && files[0]) && !attachment) {
             return;
         }
 
@@ -451,7 +467,7 @@ var NewPage = Backbone.View.extend({
             }
         }]);
 
-        if(files && files[0]){
+        if (files && files[0]) {
             reader = new FileReader();
             reader.onload = _.bind(function(e) {
                 globalState.get('messages').at(0).set('attachment', e.target.result);
@@ -466,8 +482,15 @@ var NewPage = Backbone.View.extend({
             }, this);
             reader.readAsDataURL(files[0]);
         }
-        else if(globalState.get('clone_attachment') && globalState.get('messages').at(0).get('attachment')) {
-            the_rest(cipherdata, util.zeroCipher(randomkey, globalState.get('messages').at(0).get('attachment')));
+        else if(globalState.get('clone_attachment')) {
+            console.log(attachment);
+            globalState.get('messages').at(0).set('attachment', attachment);
+            this.uploadPaste(cipherdata,
+                util.zeroCipher(randomkey, attachment),
+                expiration,
+                language,
+                opendiscussion,
+                randomkey);
         }
         else {
             this.uploadPaste(
@@ -484,7 +507,7 @@ var NewPage = Backbone.View.extend({
 
     render: function() {
         util.showStatus(false);
-        this.$el.html(this.template());
+        this.$el.html(this.template({is_extension: util.is_extension()}));
         $('#app').empty();
         this.$el.appendTo('#app');
         this.delegateEvents();
@@ -524,23 +547,32 @@ var controller = {
             }
         }, this));
 
-        zerobinRouter.navigate('read!' + paste + '!' + key);
+        if (globalState.get('remote')) {
+            zerobinRouter.navigate('remote!' + globalState.get('server') + '!' + paste + '!' + key);
+        } else {
+            zerobinRouter.navigate('read!' + paste + '!' + key);
+        }
+    },
+    remote: function(server, paste, key) {
+        globalState.set('remote', true);
+        globalState.set('server', server);
+        controller.read(paste, key);
     },
     clone_paste: function(){
         var paste = globalState.get('pasteid');
         var key = globalState.get('key');
         var data = globalState.get('messages').at(0).get('data');
         var has_attachment = !!globalState.get('messages').at(0).get('attachment');
-        globalState.set('clone_attachment', true);
         newPage.render();
 
         if (has_attachment) {
+            globalState.set('clone_attachment', true);
+            $('#file-wrap').hide();
             $('#cloned-file-wrap').show().find('a').click(function(){
                 globalState.set('clone_attachment', false);
                 $('#cloned-file-wrap').hide();
                 $('#file-wrap').show();
             });
-            $('#file-wrap').hide();
         }
         $('#messageValue').val(data);
         zerobinRouter.navigate('');
@@ -550,7 +582,11 @@ var controller = {
         globalState.set('key', key);
         globalState.set('preview', true);
         readPage.render();
-        zerobinRouter.navigate('read!' + paste + '!' + key);
+        if (globalState.get('remote')) {
+            zerobinRouter.navigate('remote!' + globalState.get('server') + '!' + paste + '!' + key);
+        } else {
+            zerobinRouter.navigate('read!' + paste + '!' + key);
+        }
     },
     new_paste: function(){
         newPage.render();
@@ -562,15 +598,25 @@ var controller = {
 var ZerobinRouter = Backbone.Router.extend({
 
     routes: {
-        "":                          "new_paste",
-        "read!*paste!*key":          "read_paste"
+        "":                           "new_paste",
+        "remote!*server!*paste!*key": "remote_paste",
+        "read!*paste!*key":           "read_paste"
     },
 
     new_paste: function() {
         controller.new_paste();
     },
 
-    // Display an existing paste
+    // Display an existing paste (from a remote server / in an extension)
+    remote_paste: function(server, paste, key) {
+        if (server.length !== 0 && paste && paste.length !== 0) {
+            controller.remote(server, paste, key);
+        } else {
+            controller.new_paste();
+        }
+    },
+
+    // Display an existing paste (from our server)
     read_paste: function(paste, key) {
         if (paste.length !== 0) {
             controller.read(paste, key);
