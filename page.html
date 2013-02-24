@@ -137,7 +137,7 @@
           <img src="{{comment.meta.vizhash}}" class="vizhash" title="Anonymous avatar (Vizhash of the IP address)" />
           {{! } }}
           <strong class="nickname">{{comment.meta.nickname}}</strong>
-          <span class="commentdate" title="CommentID: {{comment.meta.commentid}}">- {{! print(new Date(comment.meta.postdate*1000).toUTCString()); }}</span>
+          <span class="commentdate" title="CommentID: {{comment.meta.commentid}}">- {{! print(new Date(comment.meta.postdate*1000).toString()); }}</span>
         </div>
         <div class="commentdata">{{comment.data}}</div>
         <button class="btn reply-btn" commentid="{{comment.meta.commentid}}">Reply</button>
