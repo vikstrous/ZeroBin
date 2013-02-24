@@ -182,6 +182,27 @@ var util = {
     //if we are not running as a chrome extension, hide the host input
     is_extension: function() {
         return typeof chrome !== undefined && chrome.tabs !== undefined;
+    },
+
+    /** Text range selection.
+     *  From: http://stackoverflow.com/questions/985272/jquery-selecting-text-in-an-element-akin-to-highlighting-with-your-mouse
+     *  @param string element : Indentifier of the element to select (id="").
+     */
+    selectText: function(element) {
+        var doc = document,
+            text = doc.getElementById(element),
+            range, selection;
+        if(doc.body.createTextRange) { //ms
+            range = doc.body.createTextRange();
+            range.moveToElementText(text);
+            range.select();
+        } else if(window.getSelection) { //all others
+            selection = window.getSelection();
+            range = doc.createRange();
+            range.selectNodeContents(text);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
     }
 
 };
@@ -382,7 +403,7 @@ var ReadPage = Backbone.View.extend({
         this.$el.html(this.template({
             preview: globalState.get('preview'),
             opendiscussion: globalState.get('messages').at(0).get('meta').opendiscussion,
-            pastelink: util.scriptLocation() + "#read!" + globalState.get('pasteid') + '!' + globalState.get('key'),
+            pasteurl: util.scriptLocation() + "#read!" + globalState.get('pasteid') + '!' + globalState.get('key'),
             pasteid: globalState.get('pasteid')
         }));
         $('#app').empty();
@@ -392,6 +413,9 @@ var ReadPage = Backbone.View.extend({
         }
         this.displayMessages();
         this.delegateEvents();
+        if(globalState.get('preview')) {
+            util.selectText('pasteurl');
+        }
     }
 });
 
