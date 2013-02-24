@@ -502,6 +502,10 @@ var NewPage = Backbone.View.extend({
         }]);
 
         if(files && files[0]) {
+            if(typeof FileReader === undefined) {
+                util.showError('Your browser does not support uploading encrypted files. Please use a newer browser.');
+                return;
+            }
             reader = new FileReader();
             reader.onload = _.bind(function(e) {
                 globalState.get('messages').at(0).set('attachment', e.target.result);
