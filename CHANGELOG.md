@@ -46,4 +46,3 @@
     * CHANGED: URL link format
     * ADDED: Additional password feature
     * ADDED: Chrome extension
-    * FIXED: Various bugs with cloning
