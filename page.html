@@ -163,32 +163,9 @@
             <input id="server" class="span8" type="text">
           </div>
         {{! } }}
+
         <div id="message" class="span9">
           <textarea id="messageValue" class="span9" rows="20" name="message"></textarea>
-
-          <div id="attach">
-            <span id="cloned-file-wrap" style="display:none">
-              Cloned file attached.
-              <a href="#" class="btn">Remove</a>
-            </span>
-            <span id="file-wrap">
-            <div class="fileupload fileupload-new" data-provides="fileupload">
-              <span>Upload an attachment: </span>
-              <span class="input-append">
-                <div class="uneditable-input span3">
-                  <i class="icon-file fileupload-exists"></i>
-                  <span class="fileupload-preview"></span>
-                </div>
-                <span class="btn btn-file">
-                  <span class="fileupload-new">Select file</span>
-                  <span class="fileupload-exists">Change</span>
-                  <input id="file" type="file" name="file" />
-                </span>
-                <a href="#" class="btn fileupload-exists" data-dismiss="fileupload">Remove</a>
-              </span>
-            </div>
-            </span>
-          </div>
         </div>
 
         <div id="toolbar" class="span3">
@@ -236,6 +213,32 @@
             <button class="btn btn-primary" id="sendbutton"><i class="icon-ok icon-white"></i>Submit</button>
           </div>
         </div>
+
+        <div id="attach" class="span9">
+          <span id="cloned-file-wrap" style="display:none">
+            Cloned file attached.
+            <a href="#" class="btn">Remove</a>
+          </span>
+          <span id="file-wrap">
+            <div class="fileupload fileupload-new" data-provides="fileupload">
+              <label>Attachment:
+                <span class="input-append">
+                  <div class="uneditable-input span3">
+                    <i class="icon-file fileupload-exists"></i>
+                    <span class="fileupload-preview"></span>
+                  </div>
+                  <span class="btn btn-file">
+                    <span class="fileupload-new">Select file</span>
+                    <span class="fileupload-exists">Change</span>
+                    <input id="file" type="file" name="file" />
+                  </span>
+                  <a href="#" class="btn fileupload-exists" data-dismiss="fileupload">Remove</a>
+                </span>
+              </label>
+            </div>
+          </span>
+        </div>
+
       </div>
     </script>
 
