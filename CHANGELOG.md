@@ -37,6 +37,7 @@
   * **Alpha 0.15 (2012-04-20):**
     * FIXED: 2 minor corrections to avoid notices in php log.
     * FIXED: Sources converted to UTF-8.
+  * **vikstrous fork**
   * **Alpha 0.2 (2013-02-08):**
     * CHANGED: The entire backend was restrucured by Simon Rupf
     * CHANGED: The entire frontend was converted to use Bootstrap by Cash Williams
