@@ -64,7 +64,7 @@ var util = {
      *   eg. http://server.com/zero/?aaaa#bbbb --> http://server.com/zero/
      */
     scriptLocation: function () {
-        if(chrome.tabs !== undefined){
+        if(typeof chrome !== undefined && chrome.tabs !== undefined){
             return 'http://zerobin.local/';
         } else {
             return window.location.href.substring(0, window.location.href.length -
