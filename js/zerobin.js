@@ -65,7 +65,6 @@ var util = {
      */
     scriptLocation: function () {
         if(chrome.tabs !== undefined){
-            console.log('in extension');
             return 'http://zerobin.local/';
         } else {
             return window.location.href.substring(0, window.location.href.length -
